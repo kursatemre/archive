@@ -775,6 +775,13 @@
                 <span id="logCount" class="text-zinc-500 text-[11px]">0 messages</span>
             </div>
             <div class="flex items-center gap-2">
+                <button id="copyLogs" class="text-zinc-500 hover:text-zinc-300 text-[11px] px-2 py-1 rounded hover:bg-zinc-800 transition-colors flex items-center gap-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copy All
+                </button>
                 <button id="clearLogs" class="text-zinc-500 hover:text-zinc-300 text-[11px] px-2 py-1 rounded hover:bg-zinc-800 transition-colors">
                     Clear
                 </button>
@@ -891,7 +898,41 @@
                 log(...args) { this.add('log', args.join(' ')); },
                 info(...args) { this.add('info', args.join(' ')); },
                 warn(...args) { this.add('warn', args.join(' ')); },
-                error(...args) { this.add('error', args.join(' ')); }
+                error(...args) { this.add('error', args.join(' ')); },
+                
+                copyAll() {
+                    if (this.logs.length === 0) {
+                        notify('No logs to copy', 'info');
+                        return;
+                    }
+                    
+                    const text = this.logs.map(entry => {
+                        return `[${entry.time}] [${entry.type.toUpperCase()}] ${entry.message}`;
+                    }).join('\n');
+                    
+                    const header = `=== ZipStudio Console Logs ===\nDate: ${new Date().toLocaleString('tr-TR')}\nTotal: ${this.logs.length} messages (${this.errorCount} errors)\n${'='.repeat(35)}\n\n`;
+                    
+                    const fullText = header + text;
+                    
+                    navigator.clipboard.writeText(fullText).then(() => {
+                        notify('Logs copied to clipboard!', 'success');
+                    }).catch(err => {
+                        // Fallback for older browsers
+                        const textarea = document.createElement('textarea');
+                        textarea.value = fullText;
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            notify('Logs copied to clipboard!', 'success');
+                        } catch (e) {
+                            notify('Failed to copy logs', 'error');
+                        }
+                        document.body.removeChild(textarea);
+                    });
+                }
             };
             
             // Expose logger globally for debugging
@@ -1671,6 +1712,7 @@
                 document.getElementById('consoleToggle').onclick = toggleConsole;
                 document.getElementById('closeConsole').onclick = closeConsole;
                 document.getElementById('clearLogs').onclick = () => Logger.clear();
+                document.getElementById('copyLogs').onclick = () => Logger.copyAll();
                 
                 // Refresh
                 DOM.refreshBtn.onclick = () => {
