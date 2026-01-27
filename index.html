@@ -1350,69 +1350,39 @@
             // ============================================================
             
             function injectErrorHandler(html) {
-                const errorScript = `
-<script>
-(function() {
-    // Capture errors
+                const scriptOpen = '<' + 'script>';
+                const scriptClose = '</' + 'script>';
+                
+                const errorCode = `(function() {
     window.onerror = function(msg, url, line, col, error) {
         window.parent.postMessage({
             type: 'iframe-error',
-            data: {
-                message: msg,
-                source: url,
-                line: line,
-                column: col,
-                stack: error ? error.stack : null
-            }
+            data: { message: msg, source: url, line: line, column: col, stack: error ? error.stack : null }
         }, '*');
         return false;
     };
-    
-    // Capture unhandled promise rejections
     window.onunhandledrejection = function(event) {
         window.parent.postMessage({
             type: 'iframe-error',
-            data: {
-                message: 'Unhandled Promise Rejection: ' + (event.reason ? event.reason.message || event.reason : 'Unknown'),
-                stack: event.reason ? event.reason.stack : null
-            }
+            data: { message: 'Unhandled Promise Rejection: ' + (event.reason ? event.reason.message || event.reason : 'Unknown'), stack: event.reason ? event.reason.stack : null }
         }, '*');
     };
-    
-    // Capture console messages
     ['log', 'info', 'warn', 'error'].forEach(function(method) {
         var original = console[method];
         console[method] = function() {
             var args = Array.prototype.slice.call(arguments);
             window.parent.postMessage({
                 type: 'iframe-console',
-                data: {
-                    method: method,
-                    args: args.map(function(arg) {
-                        try {
-                            if (typeof arg === 'object') return JSON.stringify(arg);
-                            return String(arg);
-                        } catch(e) {
-                            return String(arg);
-                        }
-                    })
-                }
+                data: { method: method, args: args.map(function(arg) { try { return typeof arg === 'object' ? JSON.stringify(arg) : String(arg); } catch(e) { return String(arg); } }) }
             }, '*');
             original.apply(console, arguments);
         };
     });
-    
-    // Notify parent when loaded
-    window.addEventListener('load', function() {
-        window.parent.postMessage({ type: 'iframe-loaded' }, '*');
-    });
-    
-    // Notify parent on DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', function() {
-        window.parent.postMessage({ type: 'iframe-dom-ready' }, '*');
-    });
-})();
-</script>`;
+    window.addEventListener('load', function() { window.parent.postMessage({ type: 'iframe-loaded' }, '*'); });
+    document.addEventListener('DOMContentLoaded', function() { window.parent.postMessage({ type: 'iframe-dom-ready' }, '*'); });
+})();`;
+                
+                const errorScript = scriptOpen + errorCode + scriptClose;
                 
                 // Insert error handler right after <head> or at the start
                 if (html.includes('<head>')) {
