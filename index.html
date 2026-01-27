@@ -716,7 +716,17 @@
                     <button id="showP" class="tab-btn active">Preview</button>
                     <button id="showC" class="tab-btn">Source</button>
                 </div>
-                <div id="fileName" class="text-[11px] font-mono text-zinc-400 truncate ml-4 max-w-[120px] sm:max-w-[200px]"></div>
+                <div class="flex items-center gap-3 ml-auto">
+                    <label id="staticToggle" class="hidden items-center gap-2 cursor-pointer select-none" title="Static mode removes JavaScript for SSR sites">
+                        <span class="text-[11px] text-zinc-400 font-medium">Static</span>
+                        <div class="relative">
+                            <input type="checkbox" id="staticCheckbox" class="sr-only peer">
+                            <div class="w-8 h-5 bg-zinc-200 rounded-full peer-checked:bg-amber-500 transition-colors"></div>
+                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-3"></div>
+                        </div>
+                    </label>
+                    <div id="fileName" class="text-[11px] font-mono text-zinc-400 truncate max-w-[100px] sm:max-w-[180px]"></div>
+                </div>
             </div>
 
             <!-- Content Area -->
@@ -741,9 +751,19 @@
                         </svg>
                         <p class="text-[14px] text-zinc-700 font-medium">Preview Error</p>
                         <p id="errorMessage" class="text-[12px] text-zinc-500 mt-2 max-w-xs text-center">An error occurred while rendering the preview</p>
-                        <button id="retryBtn" class="mt-4 px-4 py-2 bg-zinc-900 text-white rounded-lg text-[12px] font-medium">
-                            Try Again
-                        </button>
+                        <div class="flex gap-2 mt-4">
+                            <button id="retryBtn" class="px-4 py-2 bg-zinc-200 text-zinc-700 rounded-lg text-[12px] font-medium hover:bg-zinc-300 transition-colors">
+                                Try Again
+                            </button>
+                            <button id="staticModeBtn" class="px-4 py-2 bg-zinc-900 text-white rounded-lg text-[12px] font-medium hover:bg-zinc-800 transition-colors flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <path d="M3 9h18"/>
+                                </svg>
+                                Static Mode
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-zinc-400 mt-3">Static mode removes JavaScript for SSR sites</p>
                     </div>
                     
                     <!-- Empty State -->
@@ -948,6 +968,7 @@
                 currentFile: null,
                 currentPreviewBlob: null,
                 isLoading: false,
+                staticMode: false,
                 abortController: null,
                 fileCache: new Map(),
                 processedHtmlCache: new Map(),
@@ -1327,6 +1348,31 @@
                 }
             }
             
+            // Remove all scripts from HTML for static mode
+            function removeScripts(html) {
+                let result = html;
+                
+                // Remove script tags and their content
+                result = result.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                
+                // Remove inline event handlers
+                result = result.replace(/\s(on\w+)=["'][^"']*["']/gi, '');
+                
+                // Remove javascript: links
+                result = result.replace(/href=["']javascript:[^"']*["']/gi, 'href="#"');
+                
+                // Add a notice at the top of the body
+                const notice = `<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#f59e0b,#d97706);color:#fff;padding:8px 16px;font-family:system-ui,sans-serif;font-size:12px;font-weight:500;text-align:center;z-index:999999;box-shadow:0 2px 8px rgba(0,0,0,0.15);">📷 Static Mode - JavaScript disabled for compatibility</div><div style="height:36px;"></div>`;
+                
+                if (result.includes('<body>')) {
+                    result = result.replace('<body>', '<body>' + notice);
+                } else if (result.includes('<body ')) {
+                    result = result.replace(/<body\s[^>]*>/, '$&' + notice);
+                }
+                
+                return result;
+            }
+            
             // Convert large base64 data URIs to blob URLs to reduce memory
             function optimizeDataURIs(html) {
                 const dataUriRegex = /data:(image\/[^;]+|application\/[^;]+|font\/[^;]+);base64,([A-Za-z0-9+/=]+)/g;
@@ -1557,6 +1603,17 @@
                 DOM.fileName.textContent = path;
                 DOM.refreshBtn.classList.remove('hidden');
                 
+                // Show static toggle for HTML files
+                const fileExt = getExtension(path);
+                if (fileExt === 'html' || fileExt === 'htm') {
+                    document.getElementById('staticToggle').classList.remove('hidden');
+                    document.getElementById('staticToggle').classList.add('flex');
+                    document.getElementById('staticCheckbox').checked = state.staticMode;
+                } else {
+                    document.getElementById('staticToggle').classList.add('hidden');
+                    document.getElementById('staticToggle').classList.remove('flex');
+                }
+                
                 try {
                     const file = state.currentZip.files[path];
                     if (!file) throw new Error('File not found in ZIP');
@@ -1603,16 +1660,28 @@
                         setProgress(30);
                         
                         Logger.info(`HTML size: ${(content.length / 1024).toFixed(0)} KB`);
+                        if (state.staticMode) {
+                            Logger.info('Static mode enabled - scripts will be removed');
+                        }
                         
                         let processedHtml;
-                        const cacheKey = path + '_v3';
+                        const cacheKey = path + (state.staticMode ? '_static_v1' : '_v4');
+                        
                         if (state.processedHtmlCache.has(cacheKey)) {
                             processedHtml = state.processedHtmlCache.get(cacheKey);
                             Logger.info('Using cached processed HTML');
                         } else {
                             processedHtml = await processHtmlAssets(content, basePath);
-                            // No injection - keep HTML pure for React hydration
-                            processedHtml = injectErrorHandler(processedHtml);
+                            
+                            if (state.staticMode) {
+                                // Remove scripts for static mode
+                                processedHtml = removeScripts(processedHtml);
+                                Logger.info('Scripts removed for static mode');
+                            } else {
+                                // No injection - keep HTML pure for React hydration
+                                processedHtml = injectErrorHandler(processedHtml);
+                            }
+                            
                             state.processedHtmlCache.set(cacheKey, processedHtml);
                             Logger.info(`Processed HTML size: ${(processedHtml.length / 1024).toFixed(0)} KB`);
                         }
@@ -1836,7 +1905,35 @@
                 // Retry button
                 DOM.retryBtn.onclick = () => {
                     if (state.currentFile) {
-                        state.processedHtmlCache.delete(state.currentFile);
+                        state.staticMode = false;
+                        state.processedHtmlCache.delete(state.currentFile + '_v4');
+                        state.processedHtmlCache.delete(state.currentFile + '_static_v1');
+                        hidePreviewError();
+                        loadFile(state.currentFile);
+                    }
+                };
+                
+                // Static mode button (in error overlay)
+                document.getElementById('staticModeBtn').onclick = () => {
+                    if (state.currentFile) {
+                        state.staticMode = true;
+                        document.getElementById('staticCheckbox').checked = true;
+                        state.processedHtmlCache.delete(state.currentFile + '_v4');
+                        hidePreviewError();
+                        Logger.info('Switching to static mode...');
+                        loadFile(state.currentFile);
+                    }
+                };
+                
+                // Static mode toggle (in tab bar)
+                document.getElementById('staticCheckbox').onchange = (e) => {
+                    if (state.currentFile) {
+                        state.staticMode = e.target.checked;
+                        // Clear both cache versions
+                        state.processedHtmlCache.delete(state.currentFile + '_v4');
+                        state.processedHtmlCache.delete(state.currentFile + '_static_v1');
+                        hidePreviewError();
+                        Logger.info(state.staticMode ? 'Enabling static mode...' : 'Disabling static mode...');
                         loadFile(state.currentFile);
                     }
                 };
