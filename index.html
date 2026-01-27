@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZipStudio v0.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { zinc: { 950: '#09090b' } },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; touch-action: pan-y; }
+        #sidebar { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-open { transform: translateX(0) !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 10px; }
+        iframe { background: white; color-scheme: light; }
+        /* Swipe Animation Classes */
+        .toast-swipe { transition: transform 0.2s ease-out, opacity 0.2s ease-out; cursor: grab; }
+        .toast-swipe:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="h-full bg-white text-zinc-950 flex flex-col select-none">
+
+    <header class="h-14 border-b border-zinc-200 flex items-center justify-between px-5 bg-white z-[70] shrink-0">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="md:hidden p-1.5 hover:bg-zinc-100 rounded-md transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
+            <span class="text-sm font-bold tracking-tighter uppercase flex items-center gap-2">
+                ZipStudio <span class="text-zinc-400 font-normal text-[10px]">v0.2</span>
+            </span>
+        </div>
+        
+        <label class="bg-zinc-950 hover:bg-zinc-800 text-white px-4 py-1.5 rounded text-xs font-medium cursor-pointer transition-all active:scale-95">
+            Deploy Zip
+            <input type="file" id="zipInput" class="hidden" accept=".zip">
+        </label>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        <div id="overlay" class="fixed inset-0 bg-black/10 z-[55] hidden opacity-0 transition-opacity duration-300"></div>
+
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white border-r border-zinc-200 z-[60] -translate-x-full md:translate-x-0 flex flex-col overflow-hidden shadow-2xl md:shadow-none">
+            <div class="p-4 border-b border-zinc-100 bg-zinc-50/50 flex justify-between items-center shrink-0">
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Explorer</span>
+                <button id="closeSidebar" class="md:hidden p-1 hover:bg-zinc-100 rounded"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div id="fileTree" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-0.5">
+                <div class="py-20 text-center px-6 italic text-zinc-300 text-xs">Waiting for deployment...</div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-zinc-50 relative">
+            <div class="h-11 bg-white border-b border-zinc-200 flex items-center justify-between px-4 shrink-0">
+                <div class="flex h-full">
+                    <button onclick="setTab('preview')" id="btnP" class="px-4 text-[11px] font-bold border-b-2 border-zinc-950 text-zinc-900 transition-all">PREVIEW</button>
+                    <button onclick="setTab('code')" id="btnC" class="px-4 text-[11px] font-bold border-b-2 border-transparent text-zinc-400 hover:text-zinc-600 transition-all">SOURCE</button>
+                </div>
+                <span id="activeFile" class="text-[10px] font-mono text-zinc-400 truncate ml-4"></span>
+            </div>
+
+            <div class="flex-1 relative">
+                <div id="previewPane" class="absolute inset-0 z-10 bg-white">
+                    <iframe id="vFrame" class="w-full h-full border-none" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+                <div id="codePane" class="absolute inset-0 z-0 bg-zinc-950 overflow-auto hidden custom-scrollbar">
+                    <pre class="m-0 p-6"><code id="codeView" class="font-mono text-sm leading-relaxed"></code></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast-swipe fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-[100] translate-y-24 opacity-0 bg-zinc-950 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-3">
+        <div id="toastSpinner" class="hidden w-3 h-3 border-2 border-zinc-500 border-t-white rounded-full animate-spin"></div>
+        <span id="toastMsg" class="text-[11px] font-medium tracking-wide"></span>
+    </div>
+
+    <script>
+        let zip = null;
+        let filesMap = new Map();
+        let toastX = 0;
+        let isDragging = false;
+
+        const ui = {
+            sidebar: document.getElementById('sidebar'),
+            overlay: document.getElementById('overlay'),
+            fileTree: document.getElementById('fileTree'),
+            activeFile: document.getElementById('activeFile'),
+            vFrame: document.getElementById('vFrame'),
+            codeView: document.getElementById('codeView'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toastMsg')
+        };
+
+        // --- SIDEBAR FIX ---
+        function toggleSidebar(open) {
+            ui.sidebar.classList.toggle('sidebar-open', open);
+            ui.overlay.classList.toggle('hidden', !open);
+            setTimeout(() => ui.overlay.style.opacity = open ? "1" : "0", 10);
+        }
+        document.getElementById('menuBtn').onclick = () => toggleSidebar(true);
+        document.getElementById('closeSidebar').onclick = () => toggleSidebar(false);
+        ui.overlay.onclick = () => toggleSidebar(false);
+
+        // --- SWIPE TO DISMISS TOAST ---
+        ui.toast.addEventListener('mousedown', startDrag);
+        ui.toast.addEventListener('touchstart', (e) => startDrag(e.touches[0]));
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('touchmove', (e) => drag(e.touches[0]));
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        function startDrag(e) { isDragging = true; toastX = e.clientX; ui.toast.style.transition = 'none'; }
+        function drag(e) {
+            if (!isDragging) return;
+            let offset = e.clientX - toastX;
+            ui.toast.style.transform = `translateX(calc(-50% + ${offset}px))`;
+            if (window.innerWidth >= 768) ui.toast.style.transform = `translateX(${offset}px)`;
+            ui.toast.style.opacity = 1 - Math.abs(offset) / 200;
+        }
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            const offset = parseInt(ui.toast.style.transform.match(/-?\d+/) || 0);
+            if (Math.abs(offset) > 100) hideToast();
+            else {
+                ui.toast.style.transition = 'all 0.3s';
+                ui.toast.style.transform = window.innerWidth < 768 ? 'translateX(-50%)' : 'translateX(0)';
+                ui.toast.style.opacity = '1';
+            }
+        }
+
+        function showToast(msg, loading = false) {
+            ui.toastMsg.innerText = msg;
+            document.getElementById('toastSpinner').classList.toggle('hidden', !loading);
+            ui.toast.classList.remove('translate-y-24', 'opacity-0');
+            if(!loading) setTimeout(hideToast, 4000);
+        }
+        function hideToast() { ui.toast.classList.add('translate-y-24', 'opacity-0'); }
+
+        // --- CORE LOGIC ---
+        document.getElementById('zipInput').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showToast("Deploying...", true);
+            filesMap.forEach(url => URL.revokeObjectURL(url));
+            filesMap.clear();
+
+            try {
+                zip = await JSZip.loadAsync(file);
+                for (let path in zip.files) {
+                    if (!zip.files[path].dir) {
+                        const blob = await zip.files[path].async("blob");
+                        const url = URL.createObjectURL(new Blob([blob], { type: getMime(path.split('.').pop()) }));
+                        filesMap.set(path, url);
+                    }
+                }
+
+                renderTree();
+                showToast("Live on v0.2");
+
+                // --- AUTO OPEN INDEX.HTML ---
+                // Önce kök dizindeki index.html, yoksa herhangi bir index.html, o da yoksa ilk html
+                const rootIndex = Array.from(filesMap.keys()).find(p => p.toLowerCase() === 'index.html');
+                const anyIndex = Array.from(filesMap.keys()).find(p => p.toLowerCase().endsWith('index.html'));
+                const anyHtml = Array.from(filesMap.keys()).find(p => p.toLowerCase().endsWith('.html'));
+                
+                const target = rootIndex || anyIndex || anyHtml;
+                if (target) loadFile(target);
+
+            } catch (err) {
+                showToast("Deploy failed", false);
+            }
+        };
+
+        function renderTree() {
+            ui.fileTree.innerHTML = '';
+            filesMap.forEach((url, path) => {
+                const item = document.createElement('div');
+                item.className = "flex items-center gap-2 px-3 py-2 text-[12px] font-medium rounded-md cursor-pointer hover:bg-zinc-50 text-zinc-600 transition-colors group select-none";
+                item.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-300 shrink-0"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                    <span class="truncate">${path}</span>
+                `;
+                item.onclick = () => {
+                    loadFile(path);
+                    if (window.innerWidth < 768) toggleSidebar(false);
+                };
+                ui.fileTree.appendChild(item);
+            });
+        }
+
+        async function loadFile(path) {
+            ui.activeFile.innerText = path;
+            const ext = path.split('.').pop().toLowerCase();
+            const raw = await zip.files[path].async("string");
+
+            ui.codeView.textContent = raw;
+            ui.codeView.className = `language-${getPrism(ext)}`;
+            Prism.highlightElement(ui.codeView);
+
+            if (ext === 'html') {
+                const doc = new DOMParser().parseFromString(raw, 'text/html');
+                const base = path.includes('/') ? path.substring(0, path.lastIndexOf("/") + 1) : "";
+
+                ['link', 'script', 'img'].forEach(tag => {
+                    const attr = tag === 'link' ? 'href' : 'src';
+                    doc.querySelectorAll(tag).forEach(el => {
+                        const val = el.getAttribute(attr);
+                        if (!val || val.startsWith('http') || val.startsWith('data:')) return;
+                        const abs = normalize(base + val);
+                        if (filesMap.has(abs)) el.setAttribute(attr, filesMap.get(abs));
+                    });
+                });
+
+                // Önceki URL'yi temizle (Stabilite için kritik)
+                if (ui.vFrame.src.startsWith('blob:')) URL.revokeObjectURL(ui.vFrame.src);
+                
+                const newBlob = new Blob([doc.documentElement.outerHTML], { type: 'text/html' });
+                ui.vFrame.src = URL.createObjectURL(newBlob);
+                setTab('preview');
+            } else {
+                setTab('code');
+            }
+        }
+
+        function normalize(p) {
+            let stack = [];
+            p.split('/').forEach(part => {
+                if(part === '..') stack.pop();
+                else if(part !== '.' && part !== '') stack.push(part);
+            });
+            return stack.join('/');
+        }
+
+        function setTab(m) {
+            const isP = m === 'preview';
+            document.getElementById('previewPane').classList.toggle('hidden', !isP);
+            document.getElementById('codePane').classList.toggle('hidden', isP);
+            document.getElementById('btnP').className = isP ? "px-4 text-[11px] font-bold border-b-2 border-zinc-950 text-zinc-900" : "px-4 text-[11px] font-bold border-b-2 border-transparent text-zinc-400";
+            document.getElementById('btnC').className = !isP ? "px-4 text-[11px] font-bold border-b-2 border-zinc-950 text-zinc-900" : "px-4 text-[11px] font-bold border-b-2 border-transparent text-zinc-400";
+        }
+
+        function getMime(e) { return {'html':'text/html','css':'text/css','js':'text/javascript','png':'image/png','jpg':'image/jpeg','svg':'image/svg+xml'}[e] || 'text/plain'; }
+        function getPrism(e) { return {'js':'javascript','css':'css','html':'markup'}[e] || 'javascript'; }
+    </script>
+</body>
+</html>
