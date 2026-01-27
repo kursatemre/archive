@@ -1,12 +1,79 @@
 <!DOCTYPE html>
-<html lang="tr" class="h-full">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Primary Meta Tags -->
+    <title>Archive - ZIP Preview Studio | View & Explore ZIP Files Online</title>
+    <meta name="title" content="Archive - ZIP Preview Studio | View & Explore ZIP Files Online">
+    <meta name="description" content="Archive is a powerful online ZIP file viewer. Preview HTML, CSS, JS, images and more directly in your browser. Perfect for React, Next.js and static site previews. No upload required - 100% client-side.">
+    <meta name="keywords" content="zip viewer, zip preview, online zip extractor, html preview, react preview, nextjs preview, static site viewer, file browser, archive viewer, web preview tool">
+    <meta name="author" content="Archive">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    
+    <!-- Theme & PWA -->
+    <meta name="theme-color" content="#f43f5e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>ZipStudio v1.1</title>
+    <meta name="apple-mobile-web-app-title" content="Archive">
+    <meta name="application-name" content="Archive">
+    <meta name="msapplication-TileColor" content="#f43f5e">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://zipviewer.vercel.app/">
+    <meta property="og:title" content="Archive - ZIP Preview Studio">
+    <meta property="og:description" content="Preview ZIP files directly in your browser. View HTML, React, Next.js sites and more. Fast, secure, 100% client-side.">
+    <meta property="og:image" content="https://zipviewer.vercel.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Archive">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://zipviewer.vercel.app/">
+    <meta name="twitter:title" content="Archive - ZIP Preview Studio">
+    <meta name="twitter:description" content="Preview ZIP files directly in your browser. View HTML, React, Next.js sites and more. Fast, secure, 100% client-side.">
+    <meta name="twitter:image" content="https://zipviewer.vercel.app/og-image.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23f43f5e'/%3E%3Cpath d='M20 30 h60 a5 5 0 0 1 0 10 h-23 l-7 35 a5 5 0 0 1-10 0 l-7-35 h-13 a5 5 0 0 1 0-10z' fill='white'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23f43f5e'/%3E%3Cpath d='M20 30 h60 a5 5 0 0 1 0 10 h-23 l-7 35 a5 5 0 0 1-10 0 l-7-35 h-13 a5 5 0 0 1 0-10z' fill='white'/%3E%3C/svg%3E">
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://zipviewer.vercel.app/">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Archive",
+        "alternateName": "ZIP Preview Studio",
+        "description": "Preview ZIP files directly in your browser. View HTML, React, Next.js sites and more.",
+        "url": "https://zipviewer.vercel.app/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "ZIP file preview",
+            "HTML/CSS/JS viewing",
+            "React app preview",
+            "Next.js static preview",
+            "Image viewing",
+            "Syntax highlighting",
+            "Static mode for SSR sites",
+            "100% client-side processing"
+        ]
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -619,16 +686,13 @@
                     <line x1="4" x2="20" y1="18" y2="18"/>
                 </svg>
             </button>
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 8V21H3V8"/>
-                        <path d="M1 3H23V8H1V3Z"/>
-                        <path d="M10 12H14"/>
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);">
+                    <svg width="18" height="18" viewBox="0 0 100 100" fill="none">
+                        <path d="M15 30 h70 a7 7 0 0 1 0 14 h-25 l-8 38 a7 7 0 0 1-14 0 l-8-38 h-15 a7 7 0 0 1 0-14z" fill="white"/>
                     </svg>
                 </div>
-                <span class="text-sm font-semibold tracking-tight hidden sm:inline">ZipStudio</span>
-                <span class="text-[10px] font-medium text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded hidden sm:inline">v1.1</span>
+                <span class="text-[15px] font-bold tracking-tight hidden sm:inline" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Archive</span>
             </div>
         </div>
         
@@ -830,7 +894,7 @@
 
     <script>
         // ============================================================
-        // ZipStudio v1.1 - Enhanced Stability & Mobile UX
+        // Archive v2.0 - ZIP Preview Studio
         // ============================================================
         
         (() => {
@@ -845,7 +909,7 @@
                 errorCount: 0,
                 maxLogs: 500,
                 
-                add(type, message, source = 'ZipStudio') {
+                add(type, message, source = 'Archive') {
                     const entry = {
                         type,
                         message: typeof message === 'object' ? JSON.stringify(message, null, 2) : String(message),
@@ -930,7 +994,7 @@
                         return `[${entry.time}] [${entry.type.toUpperCase()}] ${entry.message}`;
                     }).join('\n');
                     
-                    const header = `=== ZipStudio Console Logs ===\nDate: ${new Date().toLocaleString('tr-TR')}\nTotal: ${this.logs.length} messages (${this.errorCount} errors)\n${'='.repeat(35)}\n\n`;
+                    const header = `=== Archive Console Logs ===\nDate: ${new Date().toLocaleString('en-US')}\nTotal: ${this.logs.length} messages (${this.errorCount} errors)\n${'='.repeat(32)}\n\n`;
                     
                     const fullText = header + text;
                     
@@ -2022,7 +2086,7 @@
             function init() {
                 initDOM();
                 initEventHandlers();
-                Logger.info('ZipStudio v1.1 initialized');
+                Logger.info('Archive v2.0 initialized');
                 Logger.info(`User Agent: ${navigator.userAgent}`);
             }
             
