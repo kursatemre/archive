@@ -1327,14 +1327,58 @@
                 }
             }
             
+            // Convert large base64 data URIs to blob URLs to reduce memory
+            function optimizeDataURIs(html) {
+                const dataUriRegex = /data:(image\/[^;]+|application\/[^;]+|font\/[^;]+);base64,([A-Za-z0-9+/=]+)/g;
+                let optimizedHtml = html;
+                let convertedCount = 0;
+                const minSize = 10000; // Only convert if larger than 10KB
+                
+                const matches = [...html.matchAll(dataUriRegex)];
+                
+                for (const match of matches) {
+                    const fullMatch = match[0];
+                    const mimeType = match[1];
+                    const base64Data = match[2];
+                    
+                    // Only convert large data URIs
+                    if (base64Data.length > minSize) {
+                        try {
+                            const binaryString = atob(base64Data);
+                            const bytes = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) {
+                                bytes[i] = binaryString.charCodeAt(i);
+                            }
+                            const blob = new Blob([bytes], { type: mimeType });
+                            const blobUrl = URL.createObjectURL(blob);
+                            state.activeBlobs.set(`data-uri-${convertedCount}`, blobUrl);
+                            optimizedHtml = optimizedHtml.replace(fullMatch, blobUrl);
+                            convertedCount++;
+                        } catch (e) {
+                            // Keep original if conversion fails
+                        }
+                    }
+                }
+                
+                if (convertedCount > 0) {
+                    Logger.info(`Converted ${convertedCount} large data URIs to blob URLs`);
+                }
+                
+                return optimizedHtml;
+            }
+            
             async function processHtmlAssets(html, basePath) {
+                // First, optimize large inline data URIs
+                DOM.loadingStatus.textContent = 'Optimizing inline assets...';
+                let processedHtml = optimizeDataURIs(html);
+                
                 const assetRegex = /(src|href|srcset|poster|data-src|data-href)=["'](?!(?:https?:\/\/|data:|blob:|#|javascript:|mailto:|tel:))(.*?)["']/gi;
                 const cssUrlRegex = /url\(["']?(?!(?:https?:\/\/|data:|blob:))(.*?)["']?\)/gi;
                 
                 const assets = new Map();
                 
                 let match;
-                while ((match = assetRegex.exec(html)) !== null) {
+                while ((match = assetRegex.exec(processedHtml)) !== null) {
                     const relativePath = match[2];
                     if (relativePath && !relativePath.startsWith('{{') && !relativePath.startsWith('%')) {
                         const absolutePath = resolvePath(basePath, relativePath);
@@ -1344,7 +1388,7 @@
                     }
                 }
                 
-                while ((match = cssUrlRegex.exec(html)) !== null) {
+                while ((match = cssUrlRegex.exec(processedHtml)) !== null) {
                     const relativePath = match[1];
                     if (relativePath && !relativePath.startsWith('{{') && !relativePath.startsWith('%')) {
                         const absolutePath = resolvePath(basePath, relativePath);
@@ -1356,7 +1400,7 @@
                 
                 Logger.info(`Found ${assets.size} assets to process`);
                 
-                const BATCH_SIZE = 15;
+                const BATCH_SIZE = 10;
                 const assetEntries = Array.from(assets.entries());
                 const replacements = new Map();
                 
@@ -1377,9 +1421,11 @@
                     const progress = Math.min(90, 30 + ((i + batch.length) / assetEntries.length) * 60);
                     setProgress(progress);
                     DOM.loadingStatus.textContent = `Processing ${Math.min(i + BATCH_SIZE, assetEntries.length)}/${assetEntries.length} assets`;
+                    
+                    // Yield to prevent UI freeze
+                    await new Promise(r => setTimeout(r, 0));
                 }
                 
-                let processedHtml = html;
                 replacements.forEach((blobUrl, relativePath) => {
                     const escaped = relativePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     const attrRegex = new RegExp(`(src|href|srcset|poster|data-src|data-href)=["']${escaped}["']`, 'gi');
@@ -1556,18 +1602,23 @@
                         DOM.loadingStatus.textContent = 'Processing HTML...';
                         setProgress(30);
                         
+                        Logger.info(`HTML size: ${(content.length / 1024).toFixed(0)} KB`);
+                        
                         let processedHtml;
-                        const cacheKey = path + '_v2';
+                        const cacheKey = path + '_v3';
                         if (state.processedHtmlCache.has(cacheKey)) {
                             processedHtml = state.processedHtmlCache.get(cacheKey);
+                            Logger.info('Using cached processed HTML');
                         } else {
                             processedHtml = await processHtmlAssets(content, basePath);
-                            // Inject error handler at the END of body (safer for React)
+                            // No injection - keep HTML pure for React hydration
                             processedHtml = injectErrorHandler(processedHtml);
                             state.processedHtmlCache.set(cacheKey, processedHtml);
+                            Logger.info(`Processed HTML size: ${(processedHtml.length / 1024).toFixed(0)} KB`);
                         }
                         
                         setProgress(95);
+                        DOM.loadingStatus.textContent = 'Loading preview...';
                         
                         // Revoke old preview blob if exists
                         if (state.currentPreviewBlob) {
@@ -1579,21 +1630,49 @@
                         const htmlBlobUrl = URL.createObjectURL(htmlBlob);
                         state.currentPreviewBlob = htmlBlobUrl;
                         
-                        // Load into iframe with timeout
+                        // Load into iframe with timeout and crash detection
                         await new Promise((resolve, reject) => {
+                            let loaded = false;
+                            
                             const timeout = setTimeout(() => {
-                                Logger.warn('Preview load timeout - content may still be loading');
-                                resolve();
-                            }, 15000);
+                                if (!loaded) {
+                                    Logger.warn('Preview load timeout (20s) - content may still be loading');
+                                    resolve();
+                                }
+                            }, 20000);
                             
                             DOM.mainIframe.onload = () => {
+                                loaded = true;
                                 clearTimeout(timeout);
+                                
                                 // Attach error handlers after iframe loads
-                                setTimeout(() => attachIframeErrorHandlers(), 100);
+                                setTimeout(() => {
+                                    attachIframeErrorHandlers();
+                                    
+                                    // Check for crash after a delay
+                                    setTimeout(() => {
+                                        try {
+                                            const doc = DOM.mainIframe.contentDocument;
+                                            if (doc) {
+                                                // Check if there's an error message visible
+                                                const bodyText = doc.body ? doc.body.innerText : '';
+                                                if (bodyText.includes('Application error') || 
+                                                    bodyText.includes('client-side exception')) {
+                                                    Logger.error('[Preview] React app crashed - showing error page');
+                                                    showPreviewError('React app crashed. This usually happens with SSR apps that require a server.');
+                                                }
+                                            }
+                                        } catch(e) {
+                                            // Cross-origin, can't check
+                                        }
+                                    }, 1000);
+                                }, 100);
+                                
                                 resolve();
                             };
                             
                             DOM.mainIframe.onerror = (e) => {
+                                loaded = true;
                                 clearTimeout(timeout);
                                 Logger.error('Iframe load error');
                                 reject(new Error('Failed to load preview'));
@@ -1607,8 +1686,9 @@
                         switchTab('preview');
                         Logger.info('Preview loaded successfully');
                         
-                        // Try to attach error handlers again after a delay (for late errors)
+                        // Try to attach error handlers again after delays
                         setTimeout(() => attachIframeErrorHandlers(), 500);
+                        setTimeout(() => attachIframeErrorHandlers(), 2000);
                         
                     } else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'bmp'].includes(ext)) {
                         const blobUrl = await createBlobUrl(path);
