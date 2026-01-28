@@ -1664,43 +1664,38 @@
             // Inject viewport-fixing CSS into iframe content for iOS Safari compatibility
             // This ensures content properly extends to the edges and handles dynamic viewport height
             function injectViewportCSS(html) {
+                // CSS that fixes viewport issues on iOS Safari
+                // Uses !important with lower specificity so sites can override if needed
                 const viewportCSS = `<style id="archive-viewport-fix">
                     /* iOS Safari Viewport Fix - Injected by Archive */
-                    html {
+                    /* Sites can override these styles if they have their own safe area handling */
+                    :root {
                         /* Use dynamic viewport height for iOS Safari */
-                        min-height: 100vh;
-                        min-height: 100dvh;
-                        /* Safe area insets for edge-to-edge content */
-                        padding-top: env(safe-area-inset-top, 0px);
-                        padding-bottom: env(safe-area-inset-bottom, 0px);
-                        padding-left: env(safe-area-inset-left, 0px);
-                        padding-right: env(safe-area-inset-right, 0px);
+                        --archive-min-height: 100vh;
                     }
-                    body {
-                        /* Ensure body fills the viewport */
-                        min-height: 100vh;
-                        min-height: 100dvh;
+                    @supports (min-height: 100dvh) {
+                        :root {
+                            --archive-min-height: 100dvh;
+                        }
+                    }
+                    html:not(.archive-viewport-handled) {
+                        min-height: var(--archive-min-height);
+                    }
+                    body:not(.archive-viewport-handled) {
+                        min-height: var(--archive-min-height);
                         margin: 0;
-                        /* Extend content behind safe areas */
-                        padding-bottom: env(safe-area-inset-bottom, 0px);
-                    }
-                    /* Fix for fixed positioned elements */
-                    [style*="position: fixed"], [style*="position:fixed"] {
-                        /* Account for safe areas on fixed elements */
-                        padding-bottom: env(safe-area-inset-bottom, 0px);
                     }
                 </style>`;
                 
-                // Also inject viewport meta tag if not present
-                const viewportMeta = '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">';
-                
                 let result = html;
                 
-                // Inject viewport meta if not present
-                if (!result.includes('viewport-fit=cover') && result.includes('<head')) {
+                // Only inject viewport meta tag if no existing viewport meta tag exists
+                const hasViewportMeta = /<meta[^>]*name=["']viewport["'][^>]*>/i.test(result);
+                if (!hasViewportMeta && result.includes('<head')) {
+                    const viewportMeta = '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">';
                     if (result.includes('<head>')) {
                         result = result.replace('<head>', '<head>' + viewportMeta);
-                    } else {
+                    } else if (/<head\s[^>]*>/.test(result)) {
                         result = result.replace(/<head\s[^>]*>/, '$&' + viewportMeta);
                     }
                 }
@@ -1712,10 +1707,8 @@
                     result = result.replace('<body>', '<body>' + viewportCSS);
                 } else if (result.includes('<body ')) {
                     result = result.replace(/<body\s[^>]*>/, '$&' + viewportCSS);
-                } else {
-                    // No head or body tag found, prepend the CSS
-                    result = viewportCSS + result;
                 }
+                // If no head/body tags, don't inject (likely not valid HTML)
                 
                 return result;
             }
