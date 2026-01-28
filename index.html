@@ -375,7 +375,7 @@
         
         .code-content {
             flex: 1;
-            overflow-x: auto;
+            overflow: visible;
         }
         
         .code-stats {
@@ -401,6 +401,8 @@
         }
         
         .code-minimap {
+            display: flex;
+            flex-direction: column;
             width: 60px;
             flex-shrink: 0;
             background: #0f0f0f;
@@ -584,7 +586,6 @@
             <div class="p-4 border-b border-zinc-100 flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Explorer</span>
                 <div class="flex items-center gap-2">
-                    <span id="sidebarFileCount" class="text-[11px] text-zinc-300 font-medium md:hidden"></span>
                     <button id="mClose" class="md:hidden p-2 hover:bg-zinc-100 rounded-lg transition-colors">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                             <path d="M18 6L6 18M6 6l12 12"/>
@@ -905,7 +906,7 @@
                     'sidebar', 'overlay', 'fileTree', 'mainIframe', 'pContainer', 'cContainer',
                     'codeBox', 'showP', 'showC', 'toast', 'toastText', 'toastIcon',
                     'progressBar', 'previewLoading', 'previewEmpty', 'previewError', 'errorMessage',
-                    'loadingStatus', 'sidebarFileCount', 'consolePanel',
+                    'loadingStatus', 'consolePanel',
                     'consoleContent', 'errorBadge', 'refreshBtn', 'mobileFab', 'retryBtn'
                 ];
                 ids.forEach(id => DOM[id] = document.getElementById(id));
@@ -1282,9 +1283,6 @@
                     Logger.warn('No files found in ZIP archive');
                     return;
                 }
-                
-                const countText = `${files.length} file${files.length !== 1 ? 's' : ''}`;
-                DOM.sidebarFileCount.textContent = countText;
                 
                 // Show mobile FAB
                 DOM.mobileFab.classList.remove('hidden');
