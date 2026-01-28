@@ -407,8 +407,8 @@
             justify-content: flex-start;
             height: 100%; 
             color: #a1a1aa; 
-            padding: 40px 20px; 
-            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+            padding: 60px 24px; 
+            padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
             text-align: center;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -418,7 +418,130 @@
             position: absolute; 
             inset: 0; 
             z-index: 20;
+            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+        }
+        
+        /* Hero Title Styles */
+        .hero-title {
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #18181b 0%, #52525b 50%, #18181b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        
+        .hero-tagline {
+            font-size: 18px;
+            font-weight: 500;
+            color: #71717a;
+            letter-spacing: -0.01em;
+            margin-bottom: 16px;
+        }
+        
+        .hero-description {
+            font-size: 15px;
+            color: #52525b;
+            line-height: 1.7;
+            max-width: 480px;
+        }
+        
+        .hero-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #18181b;
+            color: #ffffff;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .hero-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .cta-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            color: #ffffff;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(24, 24, 27, 0.25);
+            transition: all 0.2s ease;
+        }
+        
+        .cta-hint:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(24, 24, 27, 0.3);
+        }
+        
+        .cta-hint kbd {
+            display: inline-flex;
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* File Type Badges */
+        .file-type-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 600px;
+        }
+        
+        .file-type-badge {
+            padding: 8px 14px;
             background: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #3f3f46;
+            transition: all 0.2s ease;
+        }
+        
+        .file-type-badge:hover {
+            background: #18181b;
+            color: #ffffff;
+            border-color: #18181b;
+        }
+        
+        .file-type-badge.highlight {
+            background: #18181b;
+            color: #ffffff;
+            border-color: #18181b;
+        }
+        
+        /* Section Title */
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #3f3f46;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
         }
         
         /* Card Carousel Styles */
@@ -458,48 +581,52 @@
         
         .info-card {
             flex-shrink: 0;
-            width: 240px;
-            padding: 1.25rem;
-            background: #fafafa;
-            border: 1px solid #e4e4e7;
-            border-radius: 12px;
+            width: 260px;
+            padding: 1.5rem;
+            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            border-radius: 16px;
             text-align: left;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         
         .info-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.1);
         }
         
         .info-card-icon {
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f4f4f5;
-            border-radius: 8px;
-            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, #18181b 0%, #3f3f46 100%);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(24, 24, 27, 0.2);
         }
         
         .info-card-icon svg {
-            width: 18px;
-            height: 18px;
-            stroke: #52525b;
+            width: 20px;
+            height: 20px;
+            stroke: #ffffff;
         }
         
         .info-card-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            color: #27272a;
+            color: #18181b;
             margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
         }
         
         .info-card-desc {
-            font-size: 12px;
-            color: #71717a;
-            line-height: 1.5;
+            font-size: 13px;
+            color: #52525b;
+            line-height: 1.6;
         }
         
         /* Accessibility: Respect reduced motion preferences */
@@ -530,6 +657,7 @@
         .line-numbers {
             position: sticky;
             left: 0;
+            top: 0;
             flex-shrink: 0;
             padding: 12px 0;
             background: #111111;
@@ -545,6 +673,9 @@
             padding-left: 10px;
             z-index: 10;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+            align-self: flex-start;
+            height: fit-content;
+            min-height: 100%;
         }
         
         .line-numbers div {
@@ -871,23 +1002,42 @@
                     
                     <!-- Empty State -->
                     <div id="previewEmpty" class="empty-state">
-                        <div id="bmcContainer" class="mb-6">
+                        <div id="bmcContainer" class="mb-8">
                             <a href="https://www.buymeacoffee.com/bigollc" target="_blank" rel="noopener noreferrer" aria-label="Support us on Buy Me a Coffee">
-                                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" class="h-8 w-auto">
+                                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" class="h-8 w-auto opacity-80 hover:opacity-100 transition-opacity">
                             </a>
                         </div>
-                        <h2 class="text-[18px] text-zinc-800 font-semibold mb-2">Welcome to Archive</h2>
-                        <p class="text-[14px] text-zinc-700 font-medium max-w-md">ZIP Preview Studio</p>
-                        <p class="text-[13px] text-zinc-600 mt-3 max-w-md leading-relaxed">
-                            Preview and explore ZIP files directly in your browser. 
-                            Perfect for viewing React, Next.js, and static site builds without any server setup.
+                        
+                        <!-- Hero Section -->
+                        <h1 class="hero-title">Archive</h1>
+                        <p class="hero-tagline">Preview. Explore. Inspect.</p>
+                        <p class="hero-description">
+                            The fastest way to preview ZIP files in your browser. 
+                            Explore React builds, static sites, and code files instantly — 
+                            no extraction, no upload, completely private.
                         </p>
-                        <p class="text-[12px] text-zinc-600 mt-2 max-w-md">
-                            100% client-side • No upload required • Fast & Secure
-                        </p>
-                        <p class="text-[13px] text-zinc-700 mt-4">
-                            Drop a ZIP file on the sidebar or click <strong>Deploy</strong> to get started.
-                        </p>
+                        
+                        <!-- Trust Badges -->
+                        <div class="hero-badges">
+                            <span class="hero-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                100% Private
+                            </span>
+                            <span class="hero-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                Instant
+                            </span>
+                            <span class="hero-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                No Setup
+                            </span>
+                        </div>
+                        
+                        <!-- CTA -->
+                        <div class="cta-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Drop ZIP or click Deploy
+                        </div>
                         
                         <!-- Features Section -->
                         <div class="w-full mt-10">
@@ -1036,26 +1186,30 @@
                         </div>
                         
                         <!-- Additional Info Section -->
-                        <div class="w-full max-w-2xl mt-10 px-4">
-                            <p class="text-[13px] text-zinc-500 font-medium mb-4">Supported File Types</p>
-                            <div class="flex flex-wrap justify-center gap-2">
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">HTML</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">CSS</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">JavaScript</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">TypeScript</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">React/JSX</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">JSON</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">Python</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">Images</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">SVG</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">Markdown</span>
-                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-medium">+ More</span>
+                        <div class="w-full max-w-2xl mt-12 px-4">
+                            <p class="section-title">Supported File Types</p>
+                            <div class="file-type-grid">
+                                <span class="file-type-badge highlight">HTML</span>
+                                <span class="file-type-badge highlight">CSS</span>
+                                <span class="file-type-badge highlight">JavaScript</span>
+                                <span class="file-type-badge">TypeScript</span>
+                                <span class="file-type-badge">React/JSX</span>
+                                <span class="file-type-badge">Vue</span>
+                                <span class="file-type-badge">JSON</span>
+                                <span class="file-type-badge">Python</span>
+                                <span class="file-type-badge">Go</span>
+                                <span class="file-type-badge">Rust</span>
+                                <span class="file-type-badge">Images</span>
+                                <span class="file-type-badge">SVG</span>
+                                <span class="file-type-badge">Markdown</span>
+                                <span class="file-type-badge">YAML</span>
+                                <span class="file-type-badge">+ 20 More</span>
                             </div>
                         </div>
                         
                         <!-- Bottom spacing -->
-                        <div class="mt-8 pb-4">
-                            <p class="text-[11px] text-zinc-400">Drag and drop your ZIP file to get started</p>
+                        <div class="mt-10 pb-6">
+                            <p class="text-[12px] text-zinc-400 font-medium">Built for developers • Open source</p>
                         </div>
                     </div>
                 </div>
@@ -2292,7 +2446,7 @@
                 state.isLoading = true;
                 Logger.clear();
                 Logger.info(`Processing ZIP: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
-                notify('Deploying project...', 'info');
+                // Silent start - no notification
                 setProgress(5);
                 
                 cleanup();
