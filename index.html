@@ -143,58 +143,55 @@
             }
         }
         
-        /* ===== iOS SAFE AREA FIX - BAŞLANGIÇ ===== */
-        
-        /* 1. HTML temel ayarları */
+        /* ===== iOS SAFARI URL BAR FIX ===== */
+
+        /* 1. HTML - Temel ayarlar */
         html {
             scroll-behavior: smooth;
-            height: 100%;
-            height: 100dvh;
             background: #ffffff;
-            overscroll-behavior: none;
-            /* CRITICAL: iOS Safari'nin html'e eklediği padding'i sıfırla */
-            padding: 0 !important;
-            margin: 0 !important;
+            padding: 0;
+            margin: 0;
         }
 
-        /* 2. Body - Agresif reset */
+        /* 2. Body - Desktop için sabit, Mobile için scroll */
         body {
             font-family: 'Inter', system-ui, sans-serif;
             display: flex;
             flex-direction: column;
             color: #09090b;
             background: #ffffff;
-            min-height: 100dvh;
-            height: 100dvh;
-            width: 100vw;
-            overflow: hidden;
-            overscroll-behavior: none;
-            -webkit-overflow-scrolling: touch;
-            
-            /* TÜM PADDING'LERİ SIFIRLA - env() kullanma! */
-            padding: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            
-            /* TÜM MARGIN'LERİ SIFIRLA */
-            margin: 0 !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            
-            /* iOS Safari specific fix */
-            -webkit-padding-start: 0 !important;
-            -webkit-padding-end: 0 !important;
-            
-            /* Box sizing */
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
+            /* Desktop: Sabit yükseklik */
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
         }
 
-        
-        /* 4. Ana container - Tüm ekranı kaplasın */
+        /* 3. Mobile için body ayarları - Safari URL bar gizlenebilsin */
+        @media (max-width: 768px) {
+            html {
+                /* Mobile'da html scroll container olacak */
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: scroll;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            body {
+                /* Mobile'da body sabit yükseklik değil, içeriğe göre */
+                height: auto;
+                min-height: 100vh;
+                min-height: 100dvh;
+                /* İçeriğin biraz büyük olması için - Safari scroll algılasın */
+                padding-bottom: 1px;
+                overflow: visible;
+            }
+        }
+
+        /* 4. Ana container */
         .app-main {
             display: flex;
             flex: 1;
@@ -202,11 +199,17 @@
             position: relative;
             background: #ffffff;
             min-height: 0;
-            height: 100%;
             width: 100%;
-            /* Safe area yok - tamamen edge-to-edge */
-            padding: 0 !important;
-            margin: 0 !important;
+        }
+
+        /* Mobile'da app-main viewport yüksekliğinde */
+        @media (max-width: 768px) {
+            .app-main {
+                /* Header hariç kalan alan */
+                height: calc(100vh - 56px - env(safe-area-inset-top, 0px));
+                height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+                flex: none;
+            }
         }
         
         #sidebar {
