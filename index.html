@@ -141,44 +141,32 @@
             }
         }
         
-        html {
-            scroll-behavior: smooth;
-            /* Extend background to cover safe areas */
-            background: #fafafa;
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
         }
         
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            height: 100dvh;
-            height: 100vh; /* Fallback */
-            min-height: -webkit-fill-available;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: transparent;
-            color: #09090b;
-            /* Safe area CSS variables */
+        html {
+            scroll-behavior: smooth;
+            /* Safe area CSS variables - available globally */
             --sat: env(safe-area-inset-top, 0px);
             --sab: env(safe-area-inset-bottom, 0px);
             --sal: env(safe-area-inset-left, 0px);
             --sar: env(safe-area-inset-right, 0px);
-            /* Apply horizontal safe areas */
-            padding-left: var(--sal);
-            padding-right: var(--sar);
-            /* No vertical padding - content extends to edges */
-            margin: 0;
         }
         
-        /* iOS/Android viewport fix */
-        @supports (height: 100dvh) {
-            body {
-                height: 100dvh;
-            }
-        }
-        
-        /* Make main content area extend behind safe areas */
-        .app-main {
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
             background: #fafafa;
+            color: #09090b;
+            /* Use modern viewport height */
+            height: 100vh;
+            height: 100dvh;
+            height: -webkit-fill-available;
         }
         
         .app-main {
@@ -186,6 +174,7 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+            background: transparent;
         }
         
         /* Sidebar - Desktop */
@@ -268,10 +257,7 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
-            background: #ffffff;
-            /* Extend background behind bottom safe area */
-            padding-bottom: var(--sab);
-            margin-bottom: calc(-1 * var(--sab));
+            background: transparent;
         }
         
         /* Tabs */
@@ -311,16 +297,19 @@
         
         iframe {
             width: 100%;
-            height: calc(100% + var(--sab));
+            height: 100%;
             border: none;
-            background: #fff;
+            background: transparent;
         }
         
-        /* Preview container extends behind safe area */
+        /* Content area - transparent to show iframe content behind nav */
+        .flex-1.relative.overflow-hidden {
+            background: transparent !important;
+        }
+        
+        /* Preview container fills entire area */
         #pContainer {
-            /* Extend behind bottom safe area for seamless look */
-            bottom: calc(-1 * var(--sab)) !important;
-            padding-bottom: var(--sab);
+            background: transparent;
         }
         
         /* Custom Scrollbar */
@@ -854,9 +843,9 @@
             </div>
 
             <!-- Content Area -->
-            <div class="flex-1 relative overflow-hidden bg-zinc-50">
+            <div class="flex-1 relative overflow-hidden">
                 <!-- Preview Container -->
-                <div id="pContainer" class="absolute inset-0 bg-white z-10">
+                <div id="pContainer" class="absolute inset-0 z-10">
                     <iframe id="mainIframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-presentation allow-downloads"></iframe>
                     
                     <!-- Loading Overlay -->
