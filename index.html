@@ -157,6 +157,13 @@
             --sab: env(safe-area-inset-bottom, 0px);
             --sal: env(safe-area-inset-left, 0px);
             --sar: env(safe-area-inset-right, 0px);
+            --app-height: 100vh;
+        }
+        
+        @supports (height: 100dvh) {
+            html {
+                --app-height: 100dvh;
+            }
         }
         
         body {
@@ -164,10 +171,9 @@
             display: flex;
             flex-direction: column;
             color: #09090b;
-            /* Use modern viewport height */
-            height: 100vh;
-            height: 100dvh;
-            height: -webkit-fill-available;
+            /* Keep layout synced with the visual viewport */
+            min-height: var(--app-height);
+            height: var(--app-height);
         }
         
         .app-main {
@@ -1111,6 +1117,29 @@
                     'consoleContent', 'errorBadge', 'refreshBtn', 'mobileFab', 'retryBtn'
                 ];
                 ids.forEach(id => DOM[id] = document.getElementById(id));
+            }
+            
+            // ============================================================
+            // VIEWPORT HEIGHT SYNC (iOS Safari)
+            // ============================================================
+            
+            let lastAppHeight = 0;
+            function syncAppHeight() {
+                const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                if (!height) return;
+                if (Math.abs(height - lastAppHeight) < 1) return;
+                lastAppHeight = height;
+                document.documentElement.style.setProperty('--app-height', `${height}px`);
+            }
+            
+            function initViewportHeight() {
+                syncAppHeight();
+                window.addEventListener('resize', syncAppHeight, { passive: true });
+                window.addEventListener('orientationchange', syncAppHeight, { passive: true });
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', syncAppHeight, { passive: true });
+                    window.visualViewport.addEventListener('scroll', syncAppHeight, { passive: true });
+                }
             }
             
             // ============================================================
@@ -2165,6 +2194,7 @@
             // ============================================================
             
             function init() {
+                initViewportHeight();
                 initDOM();
                 initEventHandlers();
                 Logger.info('Archive v2.0 initialized');
