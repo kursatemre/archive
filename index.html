@@ -16,7 +16,7 @@
     <!-- Theme & PWA -->
     <meta name="theme-color" content="#18181b">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Archive">
     <meta name="application-name" content="Archive">
     <meta name="msapplication-TileColor" content="#18181b">
@@ -151,12 +151,11 @@
             height: 100%;
             background: #ffffff;
             overscroll-behavior: none;
-            /* CRITICAL: iOS Safari'nin html'e eklediği padding'i sıfırla */
             padding: 0 !important;
             margin: 0 !important;
         }
 
-        /* 2. Body - Agresif reset */
+        /* 2. Body - Edge-to-edge layout */
         body {
             font-family: 'Inter', system-ui, sans-serif;
             display: flex;
@@ -164,31 +163,14 @@
             color: #09090b;
             background: #ffffff;
             min-height: 100%;
+            min-height: -webkit-fill-available;
             height: 100%;
-            width: 100vw;
+            width: 100%;
             overflow: hidden;
             overscroll-behavior: none;
             -webkit-overflow-scrolling: touch;
-            
-            /* TÜM PADDING'LERİ SIFIRLA - env() kullanma! */
             padding: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            
-            /* TÜM MARGIN'LERİ SIFIRLA */
             margin: 0 !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            
-            /* iOS Safari specific fix */
-            -webkit-padding-start: 0 !important;
-            -webkit-padding-end: 0 !important;
-            
-            /* Box sizing */
             box-sizing: border-box;
         }
 
@@ -347,15 +329,13 @@
             top: 0;
             left: 0;
             right: 0;
-            /* BOTTOM'U SIFIR YAP - safe area yok! */
-            bottom: 0 !important;
+            bottom: 0;
             display: flex;
             flex-direction: column;
             background: #ffffff;
             z-index: 10;
-            /* Padding yok */
-            padding: 0 !important;
-            margin: 0 !important;
+            padding: 0;
+            margin: 0;
         }
         
         /* 7. iFrame - Tamamen edge-to-edge */
