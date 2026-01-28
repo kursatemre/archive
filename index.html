@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
@@ -150,11 +150,14 @@
             --sal: env(safe-area-inset-left, 0px);
             --sar: env(safe-area-inset-right, 0px);
             
-            /* DYNAMIC VIEWPORT FIX */
-            height: 100dvh; 
+            /* iOS Safari fix: use 100% instead of 100dvh to prevent white bar */
+            height: 100%;
             width: 100%;
             overflow: hidden;
-            background: transparent;
+            background: #ffffff;
+            /* Prevent overscroll bounce */
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         body {
@@ -163,14 +166,20 @@
             flex-direction: column;
             color: #09090b;
             
-            /* DYNAMIC VIEWPORT FIX */
-            min-height: 100dvh;
-            height: 100dvh;
+            /* iOS Safari fix: fill entire viewport */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
+            height: 100%;
             overflow: hidden;
-            background: transparent; /* Allows content behind if any */
+            background: #ffffff;
             margin: 0;
             padding: 0;
+            /* Prevent pull-to-refresh */
+            overscroll-behavior: none;
         }
         
         .app-main {
@@ -178,8 +187,9 @@
             flex: 1;
             overflow: hidden;
             position: relative;
-            background: transparent;
-            height: 100%; /* Ensure it fills available space */
+            background: #ffffff;
+            /* Fill remaining space after header */
+            min-height: 0;
         }
         
         #sidebar {
@@ -211,8 +221,8 @@
                 transform: translateY(100%);
                 transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
                 box-shadow: none;
-                /* Add padding for safe area in sidebar too */
-                padding-bottom: calc(var(--sab, 0px) + 10px);
+                /* Safe area padding for home indicator */
+                padding-bottom: env(safe-area-inset-bottom, 10px);
             }
             
             #sidebar.active {
@@ -255,8 +265,9 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
-            background: transparent;
-            height: 100%; /* Important for propagating height */
+            background: #ffffff;
+            min-height: 0; /* Important for flexbox to shrink */
+            overflow: hidden;
         }
         
         .tab-bar {
@@ -294,29 +305,38 @@
         
         /* CONTENT CONTAINER FIX */
         .flex-1.relative.overflow-hidden {
-            background: transparent !important;
+            background: #ffffff !important;
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0;
+            position: relative;
         }
         
-        /* MAJOR FIX HERE:
-           Using inset:0 forces it to edges. 
-           Removed the negative bottom calculation which caused the white bar.
-        */
+        /* Preview container: extends to bottom edge including safe area */
         #pContainer {
             position: absolute;
-            inset: 0; /* top:0, right:0, bottom:0, left:0 */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
             height: 100%;
-            background: transparent;
+            background: #ffffff;
             z-index: 10;
+        }
+        
+        /* Iframe fills entire container */
+        #pContainer iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
         }
         
         #cContainer {
             position: absolute;
             inset: 0;
-            bottom: 0 !important;
         }
         
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -345,12 +365,26 @@
         }
         
         #toast {
-            position: fixed; bottom: calc(20px + var(--sab, 0px)); left: 16px; right: 16px;
-            max-width: 400px; margin: 0 auto; padding: 12px 18px;
-            background: #18181b; color: #fff; border-radius: 12px; font-size: 13px;
-            font-weight: 500; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-            opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-            z-index: 200; display: flex; align-items: center; gap: 12px;
+            position: fixed; 
+            bottom: max(20px, env(safe-area-inset-bottom, 20px)); 
+            left: 16px; 
+            right: 16px;
+            max-width: 400px; 
+            margin: 0 auto; 
+            padding: 12px 18px;
+            background: #18181b; 
+            color: #fff; 
+            border-radius: 12px; 
+            font-size: 13px;
+            font-weight: 500; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            opacity: 0; 
+            transform: translateY(20px); 
+            transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 200; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
         }
         #toast.visible { opacity: 1; transform: translateY(0); }
         #toast.error { background: #dc2626; }
@@ -358,13 +392,24 @@
         #toast.warning { background: #d97706; }
         
         .empty-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            height: 100%; color: #a1a1aa; padding: 40px 20px; text-align: center;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            height: 100%; 
+            color: #a1a1aa; 
+            padding: 40px 20px; 
+            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+            text-align: center;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         #previewEmpty {
-            position: absolute; inset: 0; z-index: 20;
+            position: absolute; 
+            inset: 0; 
+            z-index: 20;
+            background: #ffffff;
         }
         
         /* Card Carousel Styles */
@@ -596,15 +641,31 @@
         .chevron.collapsed { transform: rotate(-90deg); }
         
         #consolePanel {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 0;
-            max-height: 50vh; background: #0a0a0a; border-top: 1px solid #27272a;
-            z-index: 60; transition: height 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-            display: flex; flex-direction: column; overflow: hidden;
-            /* Ensure it sits above the home bar if open */
-            padding-bottom: var(--sab, 0px);
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            height: 0;
+            max-height: 50vh; 
+            background: #0a0a0a; 
+            border-top: 1px solid #27272a;
+            z-index: 60; 
+            transition: height 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            /* Safe area padding only when open */
+            padding-bottom: 0;
         }
-        #consolePanel.open { height: 250px; }
-        @media (max-width: 768px) { #consolePanel.open { height: 40vh; } }
+        #consolePanel.open { 
+            height: calc(250px + env(safe-area-inset-bottom, 0px)); 
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        @media (max-width: 768px) { 
+            #consolePanel.open { 
+                height: calc(40vh + env(safe-area-inset-bottom, 0px)); 
+            } 
+        }
         
         .console-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -626,10 +687,20 @@
         }
         
         .fab {
-            position: fixed; bottom: calc(16px + var(--sab, 0px)); right: 16px; width: 52px; height: 52px;
-            border-radius: 14px; background: #18181b; color: #fff; display: flex;
-            align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 35; transition: all 0.2s ease;
+            position: fixed; 
+            bottom: max(16px, env(safe-area-inset-bottom, 16px)); 
+            right: 16px; 
+            width: 52px; 
+            height: 52px;
+            border-radius: 14px; 
+            background: #18181b; 
+            color: #fff; 
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 35; 
+            transition: all 0.2s ease;
         }
         .fab:active { transform: scale(0.95); }
         @media (min-width: 769px) { .fab { display: none; } }
@@ -2472,4 +2543,3 @@
     <script src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
-
