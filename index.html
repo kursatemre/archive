@@ -143,11 +143,19 @@
             }
         }
         
-        /* Modern viewport approach - no fixed positioning */
+        /* 
+         * iOS Safari Safe Area Fix - 2025/2026 Best Practices
+         * When viewport-fit=cover is set, Safari adds implicit safe-area padding to body.
+         * We must explicitly override this to allow content to extend edge-to-edge.
+         */
         html {
             scroll-behavior: smooth;
+            /* Fill entire screen including safe areas */
             height: 100%;
+            height: 100dvh;
             background: #ffffff;
+            /* Prevent iOS overscroll bounce */
+            overscroll-behavior: none;
         }
 
         body {
@@ -155,15 +163,20 @@
             display: flex;
             flex-direction: column;
             color: #09090b;
-            margin: 0;
-            padding: 0;
+            /* CRITICAL: Override iOS Safari's automatic safe-area padding */
+            margin: 0 !important;
+            padding: 0 !important;
             box-sizing: border-box;
             background: #ffffff;
-            /* Use dynamic viewport height for modern browsers */
-            min-height: 100vh;
+            /* Use 100dvh for dynamic viewport that accounts for browser chrome */
             min-height: 100dvh;
             height: 100dvh;
+            /* Use 100vw to ensure full width including safe areas */
+            width: 100vw;
             overflow: hidden;
+            /* Prevent iOS overscroll */
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         
@@ -174,8 +187,9 @@
             position: relative;
             background: #ffffff;
             min-height: 0;
-            /* Allow content to flow naturally to bottom */
+            /* Fill all available space - content extends to edges */
             height: 100%;
+            width: 100%;
         }
         
         #sidebar {
@@ -254,8 +268,10 @@
             background: #ffffff;
             min-height: 0;
             overflow: hidden;
-            /* Allow content to extend to safe area edges */
+            /* Content fills remaining space and extends to screen edges */
             height: 100%;
+            /* Bottom content can extend into safe area */
+            padding-bottom: 0;
         }
         
         .tab-bar {
@@ -291,7 +307,7 @@
             display: block; /* Removes inline gap */
         }
         
-        /* Content container - fills remaining space */
+        /* Content container - fills remaining space edge-to-edge */
         .flex-1.relative.overflow-hidden {
             background: #ffffff !important;
             flex: 1;
@@ -299,23 +315,32 @@
             flex-direction: column;
             min-height: 0;
             position: relative;
+            /* Ensures content extends to bottom edge */
             height: 100%;
+            width: 100%;
         }
         
-        /* Preview container: flex-based layout for natural flow */
+        /* Preview container: extends to all edges including safe area */
         #pContainer {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* Extend into safe area at bottom */
+            bottom: calc(0px - env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
             display: flex;
             flex-direction: column;
             background: #ffffff;
             z-index: 10;
         }
         
-        /* Iframe fills entire container naturally */
+        /* Iframe fills entire container - extends to bottom edge */
         #pContainer iframe {
             flex: 1;
             width: 100%;
+            height: 100%;
             border: none;
             display: block;
         }
