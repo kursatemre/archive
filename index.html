@@ -14,12 +14,12 @@
     <meta name="language" content="English">
     
     <!-- Theme & PWA -->
-    <meta name="theme-color" content="#f43f5e">
+    <meta name="theme-color" content="#18181b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Archive">
     <meta name="application-name" content="Archive">
-    <meta name="msapplication-TileColor" content="#f43f5e">
+    <meta name="msapplication-TileColor" content="#18181b">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -127,11 +127,13 @@
         .logo-icon {
             border-radius: 22%;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            filter: grayscale(100%) brightness(0.2) !important;
         }
         
         @media (prefers-color-scheme: dark) {
             .logo-icon {
                 box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                filter: grayscale(100%) brightness(0.8) !important;
             }
         }
         
@@ -355,6 +357,10 @@
             height: 100%; color: #a1a1aa; padding: 40px 20px; text-align: center;
         }
         
+        #previewEmpty {
+            position: absolute; inset: 0; z-index: 20; background: #fff;
+        }
+        
         pre[class*="language-"] { margin: 0; padding: 12px 16px; background: #0a0a0a; font-size: 11px; line-height: 1.5; }
         code[class*="language-"] { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
         
@@ -561,7 +567,7 @@
                     <source srcset="logo-dark.png" media="(prefers-color-scheme: dark)">
                     <img src="logo.jpeg" alt="Archive" class="w-8 h-8 object-cover logo-icon">
                 </picture>
-                <span class="text-[15px] font-bold tracking-tight hidden sm:inline text-rose-500 dark:text-rose-400">Archive</span>
+                <span class="text-[15px] font-bold tracking-tight hidden sm:inline text-zinc-800 dark:text-zinc-200">Archive</span>
             </div>
         </div>
         
