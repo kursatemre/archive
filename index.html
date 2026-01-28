@@ -558,14 +558,6 @@
                 </svg>
             </button>
             
-            <div id="fileCount" class="hidden md:flex items-center gap-1.5 text-[11px] text-zinc-400 font-medium">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <span id="fileCountText">0 files</span>
-            </div>
-            
             <label id="deployBtn" class="bg-zinc-900 text-white px-3 sm:px-4 py-2.5 rounded-xl text-[12px] font-medium cursor-pointer transition-all active:scale-[0.97] hover:bg-zinc-800 shadow-sm flex items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -624,16 +616,16 @@
                     <button id="showP" class="tab-btn active">Preview</button>
                     <button id="showC" class="tab-btn">Source</button>
                 </div>
-                <div class="flex items-center gap-3 ml-auto">
-                    <label id="staticToggle" class="hidden items-center gap-2 cursor-pointer select-none" title="Static mode removes JavaScript for SSR sites">
-                        <span class="text-[11px] text-zinc-400 font-medium">Static</span>
+                <div class="flex items-center ml-auto">
+                    <label id="staticToggle" class="hidden items-center gap-2 cursor-pointer select-none" title="Toggle between Dynamic and Static mode. Static mode removes JavaScript for SSR sites.">
+                        <span class="text-[11px] text-zinc-400 font-medium">Dynamic</span>
                         <div class="relative">
                             <input type="checkbox" id="staticCheckbox" class="sr-only peer">
-                            <div class="w-8 h-5 bg-zinc-200 rounded-full peer-checked:bg-amber-500 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-3"></div>
+                            <div class="w-9 h-5 bg-emerald-500 rounded-full peer-checked:bg-amber-500 transition-colors"></div>
+                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
                         </div>
+                        <span class="text-[11px] text-zinc-400 font-medium">Static</span>
                     </label>
-                    <div id="fileName" class="text-[11px] font-mono text-zinc-400 truncate max-w-[100px] sm:max-w-[180px]"></div>
                 </div>
             </div>
 
@@ -911,9 +903,9 @@
             function initDOM() {
                 const ids = [
                     'sidebar', 'overlay', 'fileTree', 'mainIframe', 'pContainer', 'cContainer',
-                    'codeBox', 'showP', 'showC', 'fileName', 'toast', 'toastText', 'toastIcon',
+                    'codeBox', 'showP', 'showC', 'toast', 'toastText', 'toastIcon',
                     'progressBar', 'previewLoading', 'previewEmpty', 'previewError', 'errorMessage',
-                    'loadingStatus', 'fileCountText', 'fileCount', 'sidebarFileCount', 'consolePanel',
+                    'loadingStatus', 'sidebarFileCount', 'consolePanel',
                     'consoleContent', 'errorBadge', 'refreshBtn', 'mobileFab', 'retryBtn'
                 ];
                 ids.forEach(id => DOM[id] = document.getElementById(id));
@@ -1292,9 +1284,7 @@
                 }
                 
                 const countText = `${files.length} file${files.length !== 1 ? 's' : ''}`;
-                DOM.fileCountText.textContent = countText;
                 DOM.sidebarFileCount.textContent = countText;
-                DOM.fileCount.classList.remove('hidden');
                 
                 // Show mobile FAB
                 DOM.mobileFab.classList.remove('hidden');
@@ -1667,7 +1657,6 @@
                 DOM.loadingStatus.textContent = 'Reading file...';
                 setProgress(10);
                 
-                DOM.fileName.textContent = path;
                 DOM.refreshBtn.classList.remove('hidden');
                 
                 // Show static toggle for HTML files
