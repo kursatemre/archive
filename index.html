@@ -307,6 +307,23 @@
             height: 100%;
             border: none;
             background: transparent;
+            /* Ensure iframe content can scroll smoothly on mobile */
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Mobile: Make iframe fill available space properly */
+        @media (max-width: 768px) {
+            iframe {
+                /* Use dynamic viewport height on mobile */
+                height: 100%;
+                height: -webkit-fill-available;
+            }
+            
+            #pContainer {
+                /* Ensure preview container uses full height */
+                height: 100%;
+                height: -webkit-fill-available;
+            }
         }
         
         /* Content area - transparent to show iframe content behind nav */
@@ -1661,11 +1678,73 @@
             // ERROR HANDLING FOR IFRAME
             // ============================================================
             
-            // No longer inject scripts into HTML - this breaks React hydration
-            // Instead, we attach error handlers after iframe loads via contentWindow
+            // Inject viewport fix and error handlers into HTML
+            // This helps with mobile viewport issues inside iframe
             function injectErrorHandler(html) {
-                // Return HTML unchanged to preserve React hydration
-                return html;
+                const viewportFixScript = `
+<script>
+(function() {
+    // Mobile viewport height fix for iframe
+    function setViewportHeight() {
+        var vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', vh + 'px');
+        document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+    }
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('orientationchange', function() {
+        setTimeout(setViewportHeight, 100);
+    });
+    
+    // Notify parent that content is ready
+    try {
+        window.parent.postMessage({ type: 'iframe-dom-ready' }, '*');
+        window.addEventListener('load', function() {
+            window.parent.postMessage({ type: 'iframe-loaded' }, '*');
+        });
+    } catch(e) {}
+})();
+</script>
+<style>
+    /* Viewport height fix - use custom property instead of vh */
+    :root {
+        --vh: 1vh;
+        --app-height: 100vh;
+    }
+    
+    /* Fix for elements using 100vh */
+    html, body {
+        min-height: 100%;
+        min-height: var(--app-height, 100vh);
+    }
+    
+    /* Ensure body can scroll properly */
+    body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Fix sticky/fixed positioning at bottom */
+    [style*="position: fixed"][style*="bottom"],
+    [style*="position:fixed"][style*="bottom"] {
+        bottom: env(safe-area-inset-bottom, 0px) !important;
+    }
+</style>
+`;
+                
+                // Inject right after <head> tag
+                if (html.includes('<head>')) {
+                    return html.replace('<head>', '<head>' + viewportFixScript);
+                } else if (html.includes('<head ')) {
+                    return html.replace(/<head\s[^>]*>/, '$&' + viewportFixScript);
+                } else if (html.includes('<html')) {
+                    // No head tag, inject after html
+                    return html.replace(/<html[^>]*>/, '$&<head>' + viewportFixScript + '</head>');
+                }
+                
+                // Fallback: prepend to HTML
+                return viewportFixScript + html;
             }
             
             // Attach error handlers to iframe after it loads (same-origin blob URLs allow this)
