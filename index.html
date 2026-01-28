@@ -148,11 +148,8 @@
         html {
             scroll-behavior: smooth;
             background: #ffffff;
-            padding: 0;
             margin: 0;
-            /* Desktop: sabit viewport */
-            height: 100%;
-            overflow: hidden;
+            padding: 0;
         }
 
         body {
@@ -164,56 +161,17 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            /* Desktop: tam ekran, scroll yok */
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
         }
 
-        /* Mobile: Safari URL bar gizlenebilsin */
+        /* Mobile: body serbest, Safari scroll algilasin */
         @media (max-width: 768px) {
-            html {
-                height: auto;
-                overflow: auto;
-                -webkit-overflow-scrolling: touch;
-            }
             body {
                 height: auto;
                 overflow: visible;
-            }
-        }
-
-        /* App wrapper - mobile'da tüm uygulamayı sarar */
-        .app-wrapper {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-        }
-
-        /* Mobile: scroll-snap ile kullanıcı deneyimi */
-        @media (max-width: 768px) {
-            html {
-                scroll-snap-type: y proximity;
-            }
-            .app-wrapper {
-                height: 100svh;
-                flex-shrink: 0;
-                scroll-snap-align: start;
-            }
-            /* Safari'nin scroll algılaması için spacer */
-            .safari-scroll-spacer {
-                height: 50vh;
-                flex-shrink: 0;
-                pointer-events: none;
-                background: #ffffff;
-            }
-        }
-
-        /* Desktop'ta spacer gizle */
-        @media (min-width: 769px) {
-            .safari-scroll-spacer {
-                display: none;
             }
         }
 
@@ -226,6 +184,14 @@
             background: #ffffff;
             min-height: 0;
             width: 100%;
+        }
+
+        /* Mobile: app-main = 100dvh, header(56px) + app-main(100dvh) > viewport = body scroll eder */
+        @media (max-width: 768px) {
+            .app-main {
+                flex: none;
+                height: 100dvh;
+            }
         }
         
         #sidebar {
@@ -930,7 +896,6 @@
     <script src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-<div class="app-wrapper">
     <!-- Header -->
     <header class="border-b border-zinc-200 flex items-center justify-between px-4 md:px-5 shrink-0 bg-white z-[60]" style="height: calc(56px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);">
         <div class="flex items-center gap-3">
@@ -2811,37 +2776,6 @@
         })();
     </script>
     
-</div><!-- /.app-wrapper -->
-
-<!-- Safari iOS: scroll alanı - URL bar gizlenebilsin -->
-<div class="safari-scroll-spacer"></div>
-
-<script>
-// iOS Safari: URL bar gizlenmesi için scroll yönetimi
-(function() {
-    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (!isIOS) return;
-
-    // Sayfa yüklendiğinde 1px scroll et - Safari'ye scroll olduğunu söyle
-    window.addEventListener('load', function() {
-        setTimeout(function() { window.scrollTo(0, 1); }, 300);
-    });
-
-    // Scroll pozisyonunu kontrol et - çok aşağı giderse snap geri
-    var scrollTimer;
-    window.addEventListener('scroll', function() {
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(function() {
-            // Eğer scroll pozisyonu 10px'den fazlaysa ama sayfa aktif kullanılıyorsa geri snap et
-            if (window.scrollY > window.innerHeight * 0.3) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }, 150);
-    }, { passive: true });
-})();
-</script>
-
     <!-- Vercel Analytics -->
     <script src="/_vercel/insights/script.js"></script>
 
