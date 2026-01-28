@@ -6,7 +6,6 @@ const OFFLINE_URL = '/';
 const PRECACHE_FILES = [
   '/',
   '/index.html',
-  '/logo.jpeg',
   '/logo-dark.png',
   '/manifest.json',
   // External CDN resources
