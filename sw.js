@@ -1,5 +1,5 @@
-// Archive - Service Worker v2.4
-const CACHE_NAME = 'archive-v2.4';
+// Archive - Service Worker v2.5
+const CACHE_NAME = 'archive-v2.5';
 const OFFLINE_URL = '/';
 
 // Files to cache immediately on install
@@ -17,7 +17,8 @@ const PRECACHE_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap',
+  'https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js'
 ];
 
 // Install event - cache all required files

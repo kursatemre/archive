@@ -40,8 +40,7 @@
     <meta name="twitter:image" content="https://archive.webusta.org/logo.jpeg">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/jpeg" href="logo.jpeg" media="(prefers-color-scheme: light)">
-    <link rel="icon" type="image/png" href="logo-dark.png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" href="logo-dark.png">
     <link rel="apple-touch-icon" sizes="180x180" href="logo-dark.png">
     <link rel="apple-touch-icon-precomposed" sizes="180x180" href="logo-dark.png">
     <link rel="shortcut icon" href="logo-dark.png">
@@ -60,6 +59,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -330,8 +332,113 @@
             height: 100%; color: #a1a1aa; padding: 40px 20px; text-align: center;
         }
         
-        pre[class*="language-"] { margin: 0; padding: 20px; background: #0a0a0a; font-size: 13px; line-height: 1.6; }
-        code[class*="language-"] { font-family: 'JetBrains Mono', monospace; }
+        pre[class*="language-"] { margin: 0; padding: 12px 16px; background: #0a0a0a; font-size: 11px; line-height: 1.5; }
+        code[class*="language-"] { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        
+        /* Code view with line numbers and minimap */
+        .code-wrapper {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .code-main {
+            display: flex;
+            flex: 1;
+            overflow: auto;
+            min-width: 0;
+        }
+        
+        .line-numbers {
+            position: sticky;
+            left: 0;
+            flex-shrink: 0;
+            padding: 12px 0;
+            background: #0a0a0a;
+            color: #52525b;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            line-height: 1.5;
+            text-align: right;
+            user-select: none;
+            border-right: 1px solid #27272a;
+            min-width: 44px;
+            padding-right: 10px;
+            padding-left: 10px;
+            z-index: 2;
+        }
+        
+        .line-numbers div {
+            height: calc(11px * 1.5);
+        }
+        
+        .code-content {
+            flex: 1;
+            overflow-x: auto;
+        }
+        
+        .code-stats {
+            position: absolute;
+            top: 8px;
+            right: 68px;
+            display: flex;
+            gap: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: #71717a;
+            background: rgba(10, 10, 10, 0.95);
+            padding: 6px 12px;
+            border-radius: 6px;
+            z-index: 5;
+            border: 1px solid #27272a;
+        }
+        
+        .code-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .code-minimap {
+            width: 60px;
+            flex-shrink: 0;
+            background: #0f0f0f;
+            border-left: 1px solid #27272a;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .minimap-content {
+            /* Scale: 0.12 = 12% -> Width needs to be 1/0.12 = 8.33x = 833% to compensate */
+            transform: scaleX(0.12) scaleY(0.12);
+            transform-origin: top left;
+            width: 833%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            white-space: pre;
+            color: #52525b;
+            pointer-events: none;
+            padding: 4px;
+        }
+        
+        .minimap-viewport {
+            position: absolute;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            pointer-events: none;
+            transition: top 0.1s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .code-minimap { display: none; }
+            .code-stats { right: 12px; }
+        }
         
         .loading-overlay {
             position: absolute; inset: 0; background: rgba(255, 255, 255, 0.95);
@@ -451,14 +558,6 @@
                 </svg>
             </button>
             
-            <div id="fileCount" class="hidden md:flex items-center gap-1.5 text-[11px] text-zinc-400 font-medium">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <span id="fileCountText">0 files</span>
-            </div>
-            
             <label id="deployBtn" class="bg-zinc-900 text-white px-3 sm:px-4 py-2.5 rounded-xl text-[12px] font-medium cursor-pointer transition-all active:scale-[0.97] hover:bg-zinc-800 shadow-sm flex items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -517,16 +616,16 @@
                     <button id="showP" class="tab-btn active">Preview</button>
                     <button id="showC" class="tab-btn">Source</button>
                 </div>
-                <div class="flex items-center gap-3 ml-auto">
-                    <label id="staticToggle" class="hidden items-center gap-2 cursor-pointer select-none" title="Static mode removes JavaScript for SSR sites">
-                        <span class="text-[11px] text-zinc-400 font-medium">Static</span>
+                <div class="flex items-center ml-auto">
+                    <label id="staticToggle" class="hidden items-center gap-2 cursor-pointer select-none" title="Toggle between Dynamic and Static mode. Static mode removes JavaScript for SSR sites.">
+                        <span class="text-[11px] text-zinc-400 font-medium">Dynamic</span>
                         <div class="relative">
                             <input type="checkbox" id="staticCheckbox" class="sr-only peer">
-                            <div class="w-8 h-5 bg-zinc-200 rounded-full peer-checked:bg-amber-500 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-3"></div>
+                            <div class="w-9 h-5 bg-emerald-500 rounded-full peer-checked:bg-amber-500 transition-colors"></div>
+                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
                         </div>
+                        <span class="text-[11px] text-zinc-400 font-medium">Static</span>
                     </label>
-                    <div id="fileName" class="text-[11px] font-mono text-zinc-400 truncate max-w-[100px] sm:max-w-[180px]"></div>
                 </div>
             </div>
 
@@ -583,8 +682,24 @@
                 </div>
                 
                 <!-- Code Container -->
-                <div id="cContainer" class="absolute inset-0 bg-[#0a0a0a] overflow-auto custom-scroll hidden z-0">
-                    <pre class="m-0 min-h-full"><code id="codeBox" class="language-markup text-[13px] leading-relaxed"></code></pre>
+                <div id="cContainer" class="absolute inset-0 bg-[#0a0a0a] hidden z-0">
+                    <div class="code-stats" id="codeStats" role="status" aria-label="Code statistics">
+                        <span aria-label="Line count"><i data-lucide="file-text" style="width:12px;height:12px" aria-hidden="true"></i> <span id="lineCount">0</span> lines</span>
+                        <span aria-label="Character count"><i data-lucide="type" style="width:12px;height:12px" aria-hidden="true"></i> <span id="charCount">0</span> chars</span>
+                        <span aria-label="File size in kilobytes"><i data-lucide="file" style="width:12px;height:12px" aria-hidden="true"></i> <span id="byteCount">0</span> KB</span>
+                    </div>
+                    <div class="code-wrapper">
+                        <div class="code-main custom-scroll" id="codeMain">
+                            <div class="line-numbers" id="lineNumbers"></div>
+                            <div class="code-content">
+                                <pre class="m-0 min-h-full"><code id="codeBox" class="language-markup text-[11px] leading-relaxed"></code></pre>
+                            </div>
+                        </div>
+                        <div class="code-minimap" id="codeMinimap">
+                            <div class="minimap-viewport" id="minimapViewport"></div>
+                            <div class="minimap-content" id="minimapContent"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -779,15 +894,18 @@
                 isSidebarDragging: false
             };
             
+            // Constants
+            const MAX_MINIMAP_CONTENT_SIZE = 500000; // 500KB max for minimap content
+            
             // DOM Elements
             const DOM = {};
             
             function initDOM() {
                 const ids = [
                     'sidebar', 'overlay', 'fileTree', 'mainIframe', 'pContainer', 'cContainer',
-                    'codeBox', 'showP', 'showC', 'fileName', 'toast', 'toastText', 'toastIcon',
+                    'codeBox', 'showP', 'showC', 'toast', 'toastText', 'toastIcon',
                     'progressBar', 'previewLoading', 'previewEmpty', 'previewError', 'errorMessage',
-                    'loadingStatus', 'fileCountText', 'fileCount', 'sidebarFileCount', 'consolePanel',
+                    'loadingStatus', 'sidebarFileCount', 'consolePanel',
                     'consoleContent', 'errorBadge', 'refreshBtn', 'mobileFab', 'retryBtn'
                 ];
                 ids.forEach(id => DOM[id] = document.getElementById(id));
@@ -913,28 +1031,43 @@
             }
             
             function getFileIcon(ext) {
+                // Icon mapping with appropriate Lucide icons and colors
                 const icons = {
-                    'html': { color: '#e34c26', letter: 'H' },
-                    'htm': { color: '#e34c26', letter: 'H' },
-                    'css': { color: '#264de4', letter: 'C' },
-                    'js': { color: '#f0db4f', letter: 'JS' },
-                    'mjs': { color: '#f0db4f', letter: 'JS' },
-                    'jsx': { color: '#61dafb', letter: 'JX' },
-                    'ts': { color: '#3178c6', letter: 'TS' },
-                    'tsx': { color: '#3178c6', letter: 'TX' },
-                    'json': { color: '#6b7280', letter: '{ }' },
-                    'svg': { color: '#ffb13b', letter: 'SV' },
-                    'png': { color: '#22c55e', letter: 'IMG' },
-                    'jpg': { color: '#22c55e', letter: 'IMG' },
-                    'jpeg': { color: '#22c55e', letter: 'IMG' },
-                    'gif': { color: '#22c55e', letter: 'GIF' },
-                    'webp': { color: '#22c55e', letter: 'IMG' },
-                    'md': { color: '#083fa1', letter: 'MD' },
-                    'txt': { color: '#6b7280', letter: 'TXT' }
+                    'html': { color: '#e34c26', icon: 'file-code' },
+                    'htm': { color: '#e34c26', icon: 'file-code' },
+                    'css': { color: '#264de4', icon: 'palette' },
+                    'js': { color: '#f0db4f', icon: 'file-code' },
+                    'mjs': { color: '#f0db4f', icon: 'file-code' },
+                    'jsx': { color: '#61dafb', icon: 'atom' },
+                    'ts': { color: '#3178c6', icon: 'file-code' },
+                    'tsx': { color: '#3178c6', icon: 'atom' },
+                    'json': { color: '#6b7280', icon: 'braces' },
+                    'svg': { color: '#ffb13b', icon: 'image' },
+                    'png': { color: '#22c55e', icon: 'image' },
+                    'jpg': { color: '#22c55e', icon: 'image' },
+                    'jpeg': { color: '#22c55e', icon: 'image' },
+                    'gif': { color: '#22c55e', icon: 'clapperboard' },
+                    'webp': { color: '#22c55e', icon: 'image' },
+                    'md': { color: '#083fa1', icon: 'file-text' },
+                    'txt': { color: '#6b7280', icon: 'file-text' },
+                    'pdf': { color: '#dc2626', icon: 'file-text' },
+                    'xml': { color: '#f97316', icon: 'file-code' },
+                    'yaml': { color: '#cb171e', icon: 'file-cog' },
+                    'yml': { color: '#cb171e', icon: 'file-cog' },
+                    'woff': { color: '#9333ea', icon: 'type' },
+                    'woff2': { color: '#9333ea', icon: 'type' },
+                    'ttf': { color: '#9333ea', icon: 'type' },
+                    'otf': { color: '#9333ea', icon: 'type' },
+                    'mp4': { color: '#ef4444', icon: 'video' },
+                    'webm': { color: '#ef4444', icon: 'video' },
+                    'mp3': { color: '#8b5cf6', icon: 'music' },
+                    'wav': { color: '#8b5cf6', icon: 'music' },
+                    'ico': { color: '#6366f1', icon: 'star' }
                 };
                 
-                const icon = icons[ext] || { color: '#a1a1aa', letter: ext.toUpperCase().slice(0, 3) || '?' };
-                return `<span class="file-icon-badge flex-shrink-0 w-6 h-6 rounded-md text-[9px] font-bold flex items-center justify-center" style="background: ${icon.color}15; color: ${icon.color}">${icon.letter}</span>`;
+                const iconData = icons[ext] || { color: '#a1a1aa', icon: 'file' };
+                const extLabel = ext ? ext.toUpperCase() : 'File';
+                return `<span class="file-icon-badge flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center" style="background: ${iconData.color}15; color: ${iconData.color}" aria-label="${extLabel} file"><i data-lucide="${iconData.icon}" style="width:14px;height:14px" aria-hidden="true"></i></span>`;
             }
             
             // ============================================================
@@ -958,25 +1091,29 @@
             // Mobile swipe to close sidebar
             function initSidebarGestures() {
                 const sidebar = DOM.sidebar;
+                const handle = sidebar.querySelector('.mobile-handle');
                 
-                sidebar.addEventListener('touchstart', (e) => {
-                    state.touchStartY = e.touches[0].clientY;
-                    state.isSidebarDragging = false;
-                }, { passive: true });
-                
-                sidebar.addEventListener('touchmove', (e) => {
-                    const deltaY = e.touches[0].clientY - state.touchStartY;
-                    if (deltaY > 50 && sidebar.scrollTop === 0) {
+                // Only allow closing via the handle drag, not when scrolling in list
+                if (handle) {
+                    handle.addEventListener('touchstart', (e) => {
+                        state.touchStartY = e.touches[0].clientY;
                         state.isSidebarDragging = true;
-                    }
-                }, { passive: true });
-                
-                sidebar.addEventListener('touchend', () => {
-                    if (state.isSidebarDragging) {
-                        closeSidebar();
-                    }
-                    state.isSidebarDragging = false;
-                }, { passive: true });
+                    }, { passive: true });
+                    
+                    handle.addEventListener('touchmove', (e) => {
+                        if (!state.isSidebarDragging) return;
+                        const deltaY = e.touches[0].clientY - state.touchStartY;
+                        // Only allow downward drag on handle
+                        if (deltaY > 50) {
+                            closeSidebar();
+                            state.isSidebarDragging = false;
+                        }
+                    }, { passive: true });
+                    
+                    handle.addEventListener('touchend', () => {
+                        state.isSidebarDragging = false;
+                    }, { passive: true });
+                }
             }
             
             // ============================================================
@@ -1001,6 +1138,74 @@
                 DOM.cContainer.classList.toggle('hidden', isPreview);
                 DOM.showP.classList.toggle('active', isPreview);
                 DOM.showC.classList.toggle('active', !isPreview);
+                
+                // Re-init minimap when showing code view
+                if (!isPreview) {
+                    setTimeout(initMinimapScroll, 100);
+                }
+            }
+            
+            // ============================================================
+            // CODE MINIMAP
+            // ============================================================
+            
+            // Track if minimap scroll is initialized
+            let minimapInitialized = false;
+            
+            function initMinimapScroll() {
+                const codeMain = document.getElementById('codeMain');
+                const minimap = document.getElementById('codeMinimap');
+                const viewport = document.getElementById('minimapViewport');
+                const minimapContent = document.getElementById('minimapContent');
+                
+                if (!codeMain || !minimap || !viewport || !minimapContent) return;
+                
+                // Check if content fits without scrolling
+                const canScroll = codeMain.scrollHeight > codeMain.clientHeight;
+                
+                const updateViewport = () => {
+                    if (!canScroll) {
+                        viewport.style.height = `${minimap.clientHeight}px`;
+                        viewport.style.top = '0px';
+                        return;
+                    }
+                    
+                    const scrollableHeight = codeMain.scrollHeight - codeMain.clientHeight;
+                    const scrollRatio = scrollableHeight > 0 ? codeMain.scrollTop / scrollableHeight : 0;
+                    const minimapHeight = minimap.clientHeight;
+                    
+                    // Calculate viewport size based on visible ratio
+                    const visibleRatio = codeMain.clientHeight / codeMain.scrollHeight;
+                    const viewportHeight = Math.max(20, minimapHeight * visibleRatio);
+                    
+                    // Calculate viewport position
+                    const maxTop = minimapHeight - viewportHeight;
+                    const viewportTop = scrollRatio * maxTop;
+                    
+                    viewport.style.height = `${viewportHeight}px`;
+                    viewport.style.top = `${viewportTop}px`;
+                };
+                
+                // Only add listeners once
+                if (!minimapInitialized) {
+                    codeMain.addEventListener('scroll', updateViewport, { passive: true });
+                    
+                    // Click on minimap to scroll
+                    minimap.addEventListener('click', (e) => {
+                        const rect = minimap.getBoundingClientRect();
+                        const clickRatio = (e.clientY - rect.top) / rect.height;
+                        const scrollableHeight = codeMain.scrollHeight - codeMain.clientHeight;
+                        if (scrollableHeight > 0) {
+                            const scrollTarget = clickRatio * scrollableHeight;
+                            codeMain.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+                        }
+                    });
+                    
+                    minimapInitialized = true;
+                }
+                
+                // Initial update
+                updateViewport();
             }
             
             // ============================================================
@@ -1079,9 +1284,7 @@
                 }
                 
                 const countText = `${files.length} file${files.length !== 1 ? 's' : ''}`;
-                DOM.fileCountText.textContent = countText;
                 DOM.sidebarFileCount.textContent = countText;
-                DOM.fileCount.classList.remove('hidden');
                 
                 // Show mobile FAB
                 DOM.mobileFab.classList.remove('hidden');
@@ -1169,6 +1372,11 @@
                 
                 renderNode(tree, DOM.fileTree);
                 Logger.info(`Rendered file tree with ${files.length} files`);
+                
+                // Initialize Lucide icons after rendering
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
             }
             
             // ============================================================
@@ -1449,7 +1657,6 @@
                 DOM.loadingStatus.textContent = 'Reading file...';
                 setProgress(10);
                 
-                DOM.fileName.textContent = path;
                 DOM.refreshBtn.classList.remove('hidden');
                 
                 // Show static toggle for HTML files
@@ -1480,9 +1687,41 @@
                     setProgress(20);
                     Logger.info(`File size: ${(content.length / 1024).toFixed(2)} KB`);
                     
-                    // Update code view asynchronously
+                    // Update code view asynchronously with line numbers and stats
                     whenIdle(() => {
                         DOM.codeBox.textContent = content;
+                        
+                        // Calculate stats
+                        const lines = content.split('\n');
+                        const lineCount = lines.length;
+                        const charCount = content.length;
+                        const byteCount = new Blob([content]).size;
+                        
+                        // Update stats display
+                        const lineCountEl = document.getElementById('lineCount');
+                        const charCountEl = document.getElementById('charCount');
+                        const byteCountEl = document.getElementById('byteCount');
+                        if (lineCountEl) lineCountEl.textContent = lineCount.toLocaleString();
+                        if (charCountEl) charCountEl.textContent = charCount.toLocaleString();
+                        if (byteCountEl) byteCountEl.textContent = (byteCount / 1024).toFixed(1);
+                        
+                        // Generate line numbers
+                        const lineNumbersEl = document.getElementById('lineNumbers');
+                        if (lineNumbersEl) {
+                            lineNumbersEl.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+                        }
+                        
+                        // Update minimap
+                        const minimapContent = document.getElementById('minimapContent');
+                        if (minimapContent && content.length < MAX_MINIMAP_CONTENT_SIZE) {
+                            minimapContent.textContent = content;
+                        } else if (minimapContent) {
+                            minimapContent.textContent = content.slice(0, MAX_MINIMAP_CONTENT_SIZE) + '\n... (truncated)';
+                        }
+                        
+                        // Initialize minimap scrolling
+                        initMinimapScroll();
+                        
                         if (content.length < 100000) {
                             const langMap = {
                                 'js': 'javascript', 'mjs': 'javascript', 'jsx': 'javascript',
@@ -1490,14 +1729,14 @@
                                 'css': 'css', 'json': 'javascript',
                                 'html': 'markup', 'htm': 'markup', 'svg': 'markup', 'xml': 'markup'
                             };
-                            DOM.codeBox.className = `language-${langMap[ext] || 'markup'}`;
+                            DOM.codeBox.className = `language-${langMap[ext] || 'markup'} text-[11px]`;
                             try {
                                 Prism.highlightElement(DOM.codeBox);
                             } catch (e) {
                                 Logger.warn('Syntax highlighting failed');
                             }
                         } else {
-                            DOM.codeBox.className = '';
+                            DOM.codeBox.className = 'text-[11px]';
                             Logger.warn('File too large for syntax highlighting');
                         }
                     });
@@ -1711,7 +1950,8 @@
                         Logger.warn('No HTML entry point found');
                     }
                     
-                    notify('Project deployed successfully', 'success');
+                    // Success notification removed - deploy completes silently
+                    Logger.info('Project deployed successfully');
                     
                 } catch (error) {
                     Logger.error(`ZIP processing failed: ${error.message}`);
@@ -1872,6 +2112,12 @@
                 initViewportHeight();
                 initDOM();
                 initEventHandlers();
+                
+                // Initialize Lucide icons
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+                
                 Logger.info('Archive v2.0 initialized');
                 Logger.info(`User Agent: ${navigator.userAgent}`);
             }
