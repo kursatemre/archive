@@ -145,7 +145,8 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             /* No background - content shows through to browser nav */
             background: transparent;
         }
@@ -168,12 +169,25 @@
         
         body {
             font-family: 'Inter', system-ui, sans-serif;
+            color: #09090b;
+            /* Body scrolls to collapse iOS toolbars */
+            min-height: 100%;
+        }
+        
+        #appRoot {
+            position: fixed;
+            inset: 0;
             display: flex;
             flex-direction: column;
-            color: #09090b;
-            /* Keep layout synced with the visual viewport */
             min-height: var(--app-height);
             height: var(--app-height);
+            background: transparent;
+        }
+        
+        #scrollProxy {
+            height: calc(var(--app-height) + var(--scroll-space, 0px));
+            pointer-events: none;
+            visibility: hidden;
         }
         
         .app-main {
@@ -740,8 +754,9 @@
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-    <!-- Header -->
-    <header class="border-b border-zinc-200 flex items-center justify-between px-4 md:px-5 shrink-0 bg-white z-[60]" style="height: calc(56px + var(--sat, 0px)); padding-top: var(--sat, 0px);">
+    <div id="appRoot">
+        <!-- Header -->
+        <header class="border-b border-zinc-200 flex items-center justify-between px-4 md:px-5 shrink-0 bg-white z-[60]" style="height: calc(56px + var(--sat, 0px)); padding-top: var(--sat, 0px);">
         <div class="flex items-center gap-3">
             <button id="mOpen" class="md:hidden p-2.5 -ml-1 hover:bg-zinc-100 rounded-xl transition-colors active:scale-95 active:bg-zinc-200">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -950,12 +965,14 @@
         <span id="toastText"></span>
     </div>
     
-    <!-- Mobile FAB for file browser -->
-    <button id="mobileFab" class="fab md:hidden hidden">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-        </svg>
-    </button>
+        <!-- Mobile FAB for file browser -->
+        <button id="mobileFab" class="fab md:hidden hidden">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+        </button>
+    </div>
+    <div id="scrollProxy" aria-hidden="true"></div>
 
     <script>
         // ============================================================
@@ -1123,13 +1140,36 @@
             // VIEWPORT HEIGHT SYNC (iOS Safari)
             // ============================================================
             
+            const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) || 
+                (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+            
             let lastAppHeight = 0;
+            let lastScrollSpace = 0;
+            
+            function syncScrollSpace() {
+                if (!isIOS) {
+                    if (lastScrollSpace !== 0) {
+                        lastScrollSpace = 0;
+                        document.documentElement.style.setProperty('--scroll-space', '0px');
+                    }
+                    return;
+                }
+                
+                const outerDiff = Math.max(0, window.outerHeight - window.innerHeight);
+                const scrollSpace = Math.max(0, outerDiff);
+                
+                if (Math.abs(scrollSpace - lastScrollSpace) < 1) return;
+                lastScrollSpace = scrollSpace;
+                document.documentElement.style.setProperty('--scroll-space', `${scrollSpace}px`);
+            }
+            
             function syncAppHeight() {
                 const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                if (!height) return;
-                if (Math.abs(height - lastAppHeight) < 1) return;
-                lastAppHeight = height;
-                document.documentElement.style.setProperty('--app-height', `${height}px`);
+                if (height && Math.abs(height - lastAppHeight) >= 1) {
+                    lastAppHeight = height;
+                    document.documentElement.style.setProperty('--app-height', `${height}px`);
+                }
+                syncScrollSpace();
             }
             
             function initViewportHeight() {
@@ -1344,6 +1384,10 @@
                 if (state.abortController) {
                     state.abortController.abort();
                     state.abortController = null;
+                }
+                if (iframeScrollProxyCleanup) {
+                    iframeScrollProxyCleanup();
+                    iframeScrollProxyCleanup = null;
                 }
                 // Clean preview blob
                 if (state.currentPreviewBlob) {
@@ -1715,6 +1759,48 @@
                 }
             }
             
+            let iframeScrollProxyCleanup = null;
+            function attachIframeScrollProxy() {
+                if (!isIOS) return;
+                
+                if (iframeScrollProxyCleanup) {
+                    iframeScrollProxyCleanup();
+                    iframeScrollProxyCleanup = null;
+                }
+                
+                try {
+                    const win = DOM.mainIframe.contentWindow;
+                    const doc = DOM.mainIframe.contentDocument;
+                    if (!win || !doc) return;
+                    
+                    let ticking = false;
+                    const nudgeScroll = () => {
+                        ticking = false;
+                        const scrollSpace = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scroll-space')) || 0;
+                        if (scrollSpace <= 0) return;
+                        if (window.scrollY < scrollSpace) {
+                            window.scrollTo(0, scrollSpace);
+                        }
+                    };
+                    
+                    const onScroll = () => {
+                        if (ticking) return;
+                        ticking = true;
+                        requestAnimationFrame(nudgeScroll);
+                    };
+                    
+                    win.addEventListener('scroll', onScroll, { passive: true });
+                    doc.addEventListener('scroll', onScroll, { passive: true, capture: true });
+                    
+                    iframeScrollProxyCleanup = () => {
+                        win.removeEventListener('scroll', onScroll);
+                        doc.removeEventListener('scroll', onScroll, true);
+                    };
+                } catch (e) {
+                    Logger.warn('Could not attach scroll proxy: ' + e.message);
+                }
+            }
+            
             // Listen for iframe messages
             function setupIframeListener() {
                 window.addEventListener('message', (event) => {
@@ -1891,6 +1977,7 @@
                                 // Attach error handlers after iframe loads
                                 setTimeout(() => {
                                     attachIframeErrorHandlers();
+                                    attachIframeScrollProxy();
                                     
                                     // Check for crash after a delay
                                     setTimeout(() => {
