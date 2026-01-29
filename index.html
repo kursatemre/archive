@@ -204,10 +204,15 @@
             .flex-1.relative.overflow-hidden {
                 overflow: visible !important;
             }
-            /* Scroll chain: iç container scroll bitince body scroll'a geçer */
-            .empty-state,
-            .code-main {
-                overscroll-behavior-y: auto;
+            /* Empty state body scroll akışına dahil - Safari URL bar hemen gizlenir */
+            #previewEmpty {
+                position: static;
+                z-index: auto;
+            }
+            .empty-state {
+                overflow-y: visible !important;
+                height: auto;
+                min-height: 100%;
             }
         }
 
