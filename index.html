@@ -194,20 +194,31 @@
         @media (max-width: 768px) {
             .app-main {
                 flex: none;
-                height: 100vh;
-                height: 100lvh;
+                min-height: 100vh;
+                min-height: 100lvh;
+                height: auto;
                 overflow: visible;
             }
             #workspace {
                 overflow: visible;
+                height: auto;
+                min-height: 100%;
             }
             .flex-1.relative.overflow-hidden {
                 overflow: visible !important;
+                height: auto !important;
+                min-height: 100% !important;
             }
-            /* Empty state body scroll akışına dahil - Safari URL bar hemen gizlenir */
+            #pContainer {
+                position: static;
+                height: auto;
+                min-height: 100%;
+            }
             #previewEmpty {
                 position: static;
                 z-index: auto;
+                height: auto;
+                min-height: 100lvh;
             }
             .empty-state {
                 overflow-y: visible !important;
