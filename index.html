@@ -204,12 +204,10 @@
             .flex-1.relative.overflow-hidden {
                 overflow: visible !important;
             }
-            /* Touch event'lerin body'ye ulaşması için iç scroll container'ları kaldır */
-            .empty-state {
-                overflow-y: visible !important;
-            }
+            /* Scroll chain: iç container scroll bitince body scroll'a geçer */
+            .empty-state,
             .code-main {
-                overflow: visible !important;
+                overscroll-behavior-y: auto;
             }
         }
 
