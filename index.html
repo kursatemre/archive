@@ -194,36 +194,17 @@
         @media (max-width: 768px) {
             .app-main {
                 flex: none;
-                min-height: 100vh;
-                min-height: 100lvh;
-                height: auto;
+                height: var(--mobile-main-h, 100lvh);
                 overflow: visible;
             }
             #workspace {
                 overflow: visible;
-                height: auto;
-                min-height: 100%;
             }
             .flex-1.relative.overflow-hidden {
                 overflow: visible !important;
-                height: auto !important;
-                min-height: 100% !important;
-            }
-            #pContainer {
-                position: static;
-                height: auto;
-                min-height: 100%;
-            }
-            #previewEmpty {
-                position: static;
-                z-index: auto;
-                height: auto;
-                min-height: 100lvh;
             }
             .empty-state {
                 overflow-y: visible !important;
-                height: auto;
-                min-height: 100%;
             }
         }
 
@@ -2418,6 +2399,25 @@
             }
             
             window.addEventListener('beforeunload', cleanup);
+
+            // Mobile Safari: app-main yüksekliğini empty-state içeriğine göre ayarla
+            (function() {
+                function setMobileHeight() {
+                    if (window.innerWidth > 768) return;
+                    var es = document.querySelector('.empty-state');
+                    if (es && es.offsetParent !== null) {
+                        var h = es.scrollHeight;
+                        document.documentElement.style.setProperty('--mobile-main-h', h + 'px');
+                    }
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', setMobileHeight);
+                } else {
+                    setMobileHeight();
+                }
+                window.addEventListener('resize', setMobileHeight);
+                window.addEventListener('load', setMobileHeight);
+            })();
             
             // ============================================================
             // SERVICE WORKER REGISTRATION (PWA)
