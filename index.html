@@ -196,13 +196,19 @@
                 flex: none;
                 height: 100vh;
                 height: 100lvh;
-                /* overflow: hidden kaldırıldı - touch event'ler body'ye propagate olsun */
                 overflow: visible;
             }
             #workspace {
                 overflow: visible;
             }
             .flex-1.relative.overflow-hidden {
+                overflow: visible !important;
+            }
+            /* Touch event'lerin body'ye ulaşması için iç scroll container'ları kaldır */
+            .empty-state {
+                overflow-y: visible !important;
+            }
+            .code-main {
                 overflow: visible !important;
             }
         }
